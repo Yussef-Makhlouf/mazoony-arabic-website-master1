@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Phone,
   MessageCircle,
@@ -26,6 +27,7 @@ import {
   Languages,
   GraduationCap,
   Send,
+  ThumbsUp,
 } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -33,6 +35,8 @@ import Image from "next/image"
 import { useState } from "react"
 import { NavBar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { ReviewForm } from "@/components/review-form"
+import { ReviewsDisplay } from "@/components/reviews-display"
 
 import { getAllSheikhs } from "@/lib/data"
 import { ClientPageProps } from "@/lib/types"
@@ -68,6 +72,11 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
     })
   }
 
+  const handleReviewSuccess = () => {
+    // Refresh reviews or show success message
+    console.log("Review submitted successfully")
+  }
+
   return (
     <div className="min-h-screen bg-background rtl">
       <NavBar />
@@ -101,312 +110,234 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
 
       <main className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <Card className="sticky top-8 shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-12 translate-x-12"></div>
-
-              <CardHeader className="text-center relative">
-                <div className="flex justify-center mb-6">
-                  <div className="relative">
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-primary/20 shadow-lg">
-                      <Image
-                        src="/professional-arabic-sheikh-portrait.png"
-                        alt={sheikh.name}
-                        width={128}
-                        height={128}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                    <div className="absolute -bottom-2 -right-2 bg-primary text-primary-foreground rounded-full p-2 shadow-lg">
-                      <Award className="w-5 h-5" />
-                    </div>
-                    <div className="absolute -top-2 -left-2 bg-secondary text-secondary-foreground rounded-full p-2 shadow-lg">
-                      <Star className="w-5 h-5 fill-current" />
-                    </div>
-                  </div>
-                </div>
-
-                <CardTitle className="text-2xl arabic-heading text-foreground mb-3">{sheikh.name}</CardTitle>
-
-                <div className="flex items-center justify-center gap-2 mb-4">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="arabic-text text-muted-foreground font-medium">{sheikh.city}</span>
-                </div>
-
-                <div className="flex items-center justify-center gap-2 mb-6">
-                  <div className="flex items-center gap-1">
-                    <Star className="h-6 w-6 fill-secondary text-secondary" />
-                    <span className="font-bold text-2xl text-foreground">{sheikh.rating}</span>
-                  </div>
-                  <span className="text-muted-foreground arabic-text">({sheikh.reviewCount} تقييم)</span>
-                </div>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                  {sheikh.specialties.map((specialty, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className="px-3 py-1 bg-primary/10 text-primary border-primary/20 arabic-text"
-                    >
-                      {specialty}
-                    </Badge>
-                  ))}
-                </div>
-
-                <div className="space-y-2 text-sm mb-6">
-               
-                  <div className="flex items-center justify-center gap-2">
-                    <Shield className="h-4 w-4 text-green-600" />
-                    <span
-                      className={`arabic-text font-medium ${sheikh.availability === "متاح" ? "text-green-600" : "text-orange-600"}`}
-                    >
-                      {sheikh.availability}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-
-              <CardContent className="space-y-3">
-                <Button
-                  size="lg"
-                  className="w-full flex items-center gap-2 text-lg py-6 arabic-text shadow-islamic hover-lift"
-                  onClick={() => window.open(`tel:${sheikh.phone}`, "_self")}
-                >
-                  <Phone className="h-5 w-5" />
-                  اتصال مباشر
-                </Button>
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full flex items-center gap-2 text-lg py-6 arabic-text bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
-                  onClick={() => window.open(`https://wa.me/${sheikh.whatsapp.replace("+", "")}`, "_blank")}
-                >
-                  <MessageCircle className="h-5 w-5" />
-                  واتساب
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
+          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Sheikh Profile */}
             <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-full">
-                    <User className="h-6 w-6 text-primary" />
+                <div className="flex items-start gap-6">
+                  <div className="relative">
+                    <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center">
+                      {sheikh.image ? (
+                        <Image
+                          src={sheikh.image}
+                          alt={sheikh.name}
+                          width={96}
+                          height={96}
+                          className="rounded-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-12 w-12 text-primary" />
+                      )}
+                    </div>
+                    {sheikh.verified && (
+                      <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 text-white" />
+                      </div>
+                    )}
                   </div>
-                  <CardTitle className="arabic-heading text-foreground text-2xl">نبذة عن الشيخ</CardTitle>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h1 className="text-3xl font-bold arabic-heading text-foreground">{sheikh.name}</h1>
+                      {sheikh.verified && (
+                        <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+                          <CheckCircle className="w-3 h-3 ml-1" />
+                          معتمد
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="arabic-text text-muted-foreground text-lg mb-4">{sheikh.city}</p>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-5 w-5 ${
+                                i < sheikh.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="arabic-text text-muted-foreground">
+                          {sheikh.rating}/5 ({sheikh.reviewCount} تقييم)
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <span className="arabic-text text-muted-foreground">{sheikh.availability}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <p className="arabic-text text-muted-foreground leading-relaxed text-lg">{sheikh.bio}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <GraduationCap className="h-5 w-5 text-primary" />
-                      <h4 className="font-semibold arabic-heading text-foreground">المؤهل العلمي</h4>
-                    </div>
-                    <p className="arabic-text text-muted-foreground pr-8">{sheikh.education}</p>
-                  </div>
-
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Languages className="h-5 w-5 text-primary" />
-                      <h4 className="font-semibold arabic-heading text-foreground">اللغات</h4>
-                    </div>
-                    <p className="arabic-text text-muted-foreground pr-8">{sheikh.languages.join(", ")}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-secondary/10 rounded-full">
-                    <Star className="h-6 w-6 text-secondary" />
-                  </div>
-                  <CardTitle className="arabic-heading text-foreground text-2xl">التقييمات التفصيلية</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <Clock className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="font-medium arabic-text text-foreground">الالتزام بالمواعيد</span>
-                    </div>
-                    <div className="flex items-center gap-4 pr-11">
-                      <Progress value={sheikh.ratings.commitment * 20} className="flex-1 h-3" />
-                      <span className="font-bold text-xl text-foreground min-w-[3rem]">
-                        {sheikh.ratings.commitment}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <CheckCircle className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="font-medium arabic-text text-foreground">التسهيل في الأداء</span>
-                    </div>
-                    <div className="flex items-center gap-4 pr-11">
-                      <Progress value={sheikh.ratings.ease * 20} className="flex-1 h-3" />
-                      <span className="font-bold text-xl text-foreground min-w-[3rem]">{sheikh.ratings.ease}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <BookOpen className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="font-medium arabic-text text-foreground">المعرفة والشرح</span>
-                    </div>
-                    <div className="flex items-center gap-4 pr-11">
-                      <Progress value={sheikh.ratings.knowledge * 20} className="flex-1 h-3" />
-                      <span className="font-bold text-xl text-foreground min-w-[3rem]">{sheikh.ratings.knowledge}</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <DollarSign className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="font-medium arabic-text text-foreground">السعر</span>
-                    </div>
-            
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-accent/10 rounded-full">
-                    <Send className="h-6 w-6 text-accent" />
-                  </div>
+                {sheikh.bio && (
                   <div>
-                    <CardTitle className="arabic-heading text-foreground text-2xl">طلب معاودة الاتصال</CardTitle>
-                    <CardDescription className="arabic-text text-muted-foreground text-lg mt-2">
-                      املأ النموذج وسيتواصل معك الشيخ في أقرب وقت ممكن
-                    </CardDescription>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">نبذة عن المأذون</h3>
+                    <p className="arabic-text text-muted-foreground leading-relaxed">{sheikh.bio}</p>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="fullName" className="arabic-text font-medium text-foreground">
-                        الاسم الكامل
-                      </Label>
-                      <Input
-                        id="fullName"
-                        placeholder="أدخل اسمك الكامل"
-                        value={formData.fullName}
-                        onChange={handleInputChange}
-                        className="arabic-text bg-background border-primary/20 focus:border-primary"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="phone" className="arabic-text font-medium text-foreground">
-                        رقم الهاتف
-                      </Label>
-                      <Input
-                        id="phone"
-                        placeholder="05xxxxxxxx"
-                        value={formData.phone}
-                        onChange={handleInputChange}
-                        className="arabic-text bg-background border-primary/20 focus:border-primary"
-                        required
-                      />
+                )}
+
+                {sheikh.specialties && sheikh.specialties.length > 0 && (
+                  <div>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">التخصصات</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {sheikh.specialties.map((specialty, index) => (
+                        <Badge key={index} variant="secondary" className="arabic-text">
+                          {specialty}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="city" className="arabic-text font-medium text-foreground">
-                      المدينة
-                    </Label>
-                    <Input
-                      id="city"
-                      placeholder="أدخل مدينتك"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className="arabic-text bg-background border-primary/20 focus:border-primary"
-                      required
-                    />
+                )}
+
+                {sheikh.experience && (
+                  <div>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">الخبرة</h3>
+                    <p className="arabic-text text-muted-foreground">{sheikh.experience}</p>
                   </div>
-                  <div className="space-y-3">
-                    <Label htmlFor="message" className="arabic-text font-medium text-foreground">
-                      الرسالة
-                    </Label>
-                    <Textarea
-                      id="message"
-                      placeholder="اكتب رسالتك هنا..."
-                      rows={4}
-                      value={formData.message}
-                      onChange={handleInputChange}
-                      className="arabic-text bg-background border-primary/20 focus:border-primary resize-none"
-                      required
-                    />
+                )}
+
+                {sheikh.education && (
+                  <div>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">المؤهلات العلمية</h3>
+                    <p className="arabic-text text-muted-foreground">{sheikh.education}</p>
                   </div>
-                  <Button type="submit" size="lg" className="w-full text-lg py-6 arabic-text shadow-islamic hover-lift">
-                    <Send className="h-5 w-5 ml-2" />
-                    إرسال طلب المعاودة
-                  </Button>
-                </form>
+                )}
+
+                {sheikh.languages && sheikh.languages.length > 0 && (
+                  <div>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">اللغات</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {sheikh.languages.map((language, index) => (
+                        <Badge key={index} variant="outline" className="arabic-text">
+                          <Languages className="w-3 h-3 ml-1" />
+                          {language}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {sheikh.ratings && (
+                  <div>
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">تقييمات مفصلة</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="arabic-text text-muted-foreground">الالتزام</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={sheikh.ratings.commitment * 20} className="w-20" />
+                          <span className="arabic-text text-sm">{sheikh.ratings.commitment}/5</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="arabic-text text-muted-foreground">سهولة التعامل</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={sheikh.ratings.ease * 20} className="w-20" />
+                          <span className="arabic-text text-sm">{sheikh.ratings.ease}/5</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="arabic-text text-muted-foreground">المعرفة الشرعية</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={sheikh.ratings.knowledge * 20} className="w-20" />
+                          <span className="arabic-text text-sm">{sheikh.ratings.knowledge}/5</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="arabic-text text-muted-foreground">الأسعار</span>
+                        <div className="flex items-center gap-2">
+                          <Progress value={sheikh.ratings.price * 20} className="w-20" />
+                          <span className="arabic-text text-sm">{sheikh.ratings.price}/5</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
 
+            {/* Reviews Section */}
             <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-secondary/10 rounded-full">
-                    <MessageCircle className="h-6 w-6 text-secondary" />
+                    <ThumbsUp className="h-6 w-6 text-secondary" />
                   </div>
                   <CardTitle className="arabic-heading text-foreground text-2xl">آراء العملاء</CardTitle>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-8">
-                {sheikh.reviews.map((review) => (
-                  <div key={review.id} className="border border-border/50 rounded-xl p-6 bg-background/50 hover-lift">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="h-6 w-6 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold arabic-heading text-foreground text-lg">{review.name}</h4>
-                          <p className="text-sm text-muted-foreground">{review.phone}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-5 w-5 ${
-                              i < review.rating ? "fill-secondary text-secondary" : "text-muted-foreground"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <p className="arabic-text text-muted-foreground leading-relaxed text-lg mb-3">{review.comment}</p>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">{review.date}</p>
-                    </div>
-                  </div>
-                ))}
+              <CardContent>
+                <Tabs defaultValue="approved" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="approved" className="arabic-text">التقييمات المعتمدة</TabsTrigger>
+                    <TabsTrigger value="add-review" className="arabic-text">أضف تقييمك</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="approved" className="mt-6">
+                    <ReviewsDisplay sheikhId={sheikh.id} />
+                  </TabsContent>
+                  <TabsContent value="add-review" className="mt-6">
+                    <ReviewForm 
+                      sheikhId={sheikh.id} 
+                      sheikhName={sheikh.name}
+                      onSuccess={handleReviewSuccess}
+                    />
+                  </TabsContent>
+                </Tabs>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Contact Information */}
+            <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary/10 rounded-full">
+                    <Phone className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="arabic-heading text-foreground text-xl">معلومات التواصل</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="arabic-text font-medium text-foreground" dir="ltr">{sheikh.phone}</p>
+                    <p className="arabic-text text-sm text-muted-foreground">الهاتف</p>
+                  </div>
+                </div>
+                {sheikh.whatsapp && (
+                  <div className="flex items-center gap-3">
+                    <MessageCircle className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="arabic-text font-medium text-foreground" dir="ltr">{sheikh.whatsapp}</p>
+                      <p className="arabic-text text-sm text-muted-foreground">واتساب</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-muted-foreground" />
+                  <div>
+                    <p className="arabic-text font-medium text-foreground">{sheikh.city}</p>
+                    <p className="arabic-text text-sm text-muted-foreground">المدينة</p>
+                  </div>
+                </div>
+                {sheikh.price && (
+                  <div className="flex items-center gap-3">
+                    <DollarSign className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="arabic-text font-medium text-foreground">{sheikh.price} ريال</p>
+                      <p className="arabic-text text-sm text-muted-foreground">سعر الخدمة</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+       
           </div>
         </div>
       </main>

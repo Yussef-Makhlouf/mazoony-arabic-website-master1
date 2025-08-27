@@ -6,6 +6,7 @@ import { SheikhCard } from "@/components/sheikh-card"
 import { NavBar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
 import { Footer } from "@/components/footer"
+import { settingsAPI } from "@/lib/api"
 import { cityAPI, sheikhAPI } from "@/lib/api"
 
 // Get data from APIs
@@ -52,6 +53,8 @@ const services = [
 
 export default async function HomePage() {
   const { cities, featuredSheikhs } = await getHomePageData()
+  const settings = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/settings`, { cache: 'no-store' }).then(r => r.json()).catch(() => ({} as any))
+  const wa = settings?.whatsappNumber || '966501234567'
   
   return (
     <div className="min-h-screen bg-background rtl">
@@ -191,7 +194,7 @@ export default async function HomePage() {
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group" asChild>
-                  <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
+                  <a href={`https://wa.me/${wa}`} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
                     واتساب مباشر
                   </a>

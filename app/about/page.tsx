@@ -206,7 +206,7 @@ export default function AboutPage() {
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group" asChild>
-                  <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
+                  <a href="/api/settings" data-dynamic-wa target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
                     واتساب مباشر
                   </a>

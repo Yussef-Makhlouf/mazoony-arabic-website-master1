@@ -78,6 +78,81 @@ export interface Message {
   updatedAt: Date;
 }
 
+// Site Settings
+export interface SiteSettings {
+  key: 'site';
+  contactPhone: string;
+  whatsappNumber: string; // in international format without + for wa.me
+  contactEmail?: string;
+  updatedAt: Date;
+}
+
+export class SettingsService {
+  static async getSettings(): Promise<SiteSettings> {
+    const db = await getDatabase();
+    
+    // Try to get the site settings document
+    let doc = await db.collection('settings').findOne({ key: 'site' });
+    
+    if (!doc) {
+      // If no site settings document exists, create one with defaults
+      const defaults: SiteSettings = {
+        key: 'site',
+        contactPhone: '+966501234567',
+        whatsappNumber: '966501234567',
+        contactEmail: 'info@mazoony.com',
+        updatedAt: new Date(),
+      };
+      await db.collection('settings').insertOne(defaults as any);
+      doc = defaults as any;
+    }
+    
+    return doc as unknown as SiteSettings;
+  }
+
+  static async updateSettings(update: Partial<SiteSettings>): Promise<SiteSettings> {
+    const db = await getDatabase();
+    const updatedAt = new Date();
+    
+    // Prepare the update data
+    const updateData = {
+      ...update,
+      key: 'site',
+      updatedAt
+    };
+    
+    try {
+      const result = await db.collection('settings').findOneAndUpdate(
+        { key: 'site' },
+        { $set: updateData },
+        { upsert: true, returnDocument: 'after' as any }
+      );
+      
+      const value = (result as any)?.value;
+      return (value || updateData) as SiteSettings;
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      throw error;
+    }
+  }
+}
+
+export interface SheikhRequest {
+  _id?: string;
+  sheikhId: string;
+  fullName: string;
+  phone: string;
+  email?: string;
+  serviceType: "marriage" | "divorce" | "other";
+  preferredDate: string;
+  preferredTime: string;
+  additionalNotes?: string;
+  status: "pending" | "approved" | "rejected" | "completed";
+  priority: "low" | "medium" | "high";
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // City Services
 export class CityService {
   static async getAllCities(): Promise<City[]> {
@@ -420,6 +495,37 @@ export class SheikhService {
 
 // Review Services
 export class ReviewService {
+  private static async enrichReviewsWithSheikh(db: any, reviews: any[]) {
+    return Promise.all(
+      reviews.map(async (review) => {
+        try {
+          const id = String(review.sheikhId || '')
+          const isObjectId = /^[a-f\d]{24}$/i.test(id)
+          let sheikh: any = null
+          if (isObjectId) {
+            sheikh = await db.collection('sheikhs').findOne({ _id: new ObjectId(id) })
+          }
+          if (!sheikh) {
+            sheikh = await db.collection('sheikhs').findOne({ slug: id })
+          }
+          return {
+            ...review,
+            sheikhName: sheikh?.name || 'غير محدد',
+            sheikhSlug: sheikh?.slug || '',
+            sheikhImage: sheikh?.image || ''
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch sheikh for review ${review._id}:`, error)
+          return {
+            ...review,
+            sheikhName: 'غير محدد',
+            sheikhSlug: '',
+            sheikhImage: ''
+          }
+        }
+      })
+    )
+  }
   static async getReviewsBySheikh(sheikhId: string): Promise<Review[]> {
     const db = await getDatabase();
     const reviews = await db.collection('reviews')
@@ -443,8 +549,13 @@ export class ReviewService {
 
     const result = await db.collection('reviews').insertOne(review as any);
     
-    // Update sheikh rating
-    await SheikhService.updateSheikhRating(reviewData.sheikhId, reviewData.rating);
+    // Try to update sheikh rating, but don't fail if sheikh doesn't exist
+    try {
+      await SheikhService.updateSheikhRating(reviewData.sheikhId, reviewData.rating);
+    } catch (error) {
+      console.warn(`Failed to update sheikh rating for ${reviewData.sheikhId}:`, error);
+      // Don't throw error, just log it
+    }
     
     return { ...review, _id: result.insertedId.toString() };
   }
@@ -466,7 +577,53 @@ export class ReviewService {
       .find({ status: 'pending' })
       .sort({ createdAt: -1 })
       .toArray();
-    return reviews as unknown as Review[];
+    const withSheikh = await this.enrichReviewsWithSheikh(db, reviews)
+    return withSheikh as unknown as Review[];
+  }
+
+  static async getAllReviews(): Promise<Review[]> {
+    const db = await getDatabase();
+    const reviews = await db.collection('reviews')
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    const withSheikh = await this.enrichReviewsWithSheikh(db, reviews)
+    return withSheikh as unknown as Review[];
+  }
+
+  static async getReviewsByStatus(status: Review['status']): Promise<Review[]> {
+    const db = await getDatabase();
+    const reviews = await db.collection('reviews')
+      .find({ status })
+      .sort({ createdAt: -1 })
+      .toArray();
+    const withSheikh = await this.enrichReviewsWithSheikh(db, reviews)
+    return withSheikh as unknown as Review[];
+  }
+
+  static async updateReview(id: string, updateData: Partial<Review>): Promise<Review | null> {
+    const db = await getDatabase();
+    
+    const result = await db.collection('reviews').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+
+    return result as Review | null;
+  }
+
+  static async deleteReview(id: string): Promise<boolean> {
+    const db = await getDatabase();
+    
+    const result = await db.collection('reviews').deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+
+  static async getReviewById(id: string): Promise<Review | null> {
+    const db = await getDatabase();
+    const review = await db.collection('reviews').findOne({ _id: new ObjectId(id) });
+    return review as Review | null;
   }
 }
 
@@ -520,6 +677,94 @@ export class MessageService {
     
     const result = await db.collection('messages').deleteOne({ _id: new ObjectId(id) });
     return result.deletedCount > 0;
+  }
+
+  static async updateMessage(id: string, updateData: Partial<Message>): Promise<Message | null> {
+    const db = await getDatabase();
+    
+    const result = await db.collection('messages').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+
+    return result as Message | null;
+  }
+
+  static async getMessageById(id: string): Promise<Message | null> {
+    const db = await getDatabase();
+    const message = await db.collection('messages').findOne({ _id: new ObjectId(id) });
+    return message as Message | null;
+  }
+}
+
+// Sheikh Request Services
+export class SheikhRequestService {
+  static async getAllRequests(): Promise<SheikhRequest[]> {
+    const db = await getDatabase();
+    const requests = await db.collection('sheikhRequests')
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    return requests as unknown as SheikhRequest[];
+  }
+
+  static async getRequestsBySheikh(sheikhId: string): Promise<SheikhRequest[]> {
+    const db = await getDatabase();
+    const requests = await db.collection('sheikhRequests')
+      .find({ sheikhId })
+      .sort({ createdAt: -1 })
+      .toArray();
+    return requests as unknown as SheikhRequest[];
+  }
+
+  static async getRequestsByStatus(status: SheikhRequest['status']): Promise<SheikhRequest[]> {
+    const db = await getDatabase();
+    const requests = await db.collection('sheikhRequests')
+      .find({ status })
+      .sort({ createdAt: -1 })
+      .toArray();
+    return requests as unknown as SheikhRequest[];
+  }
+
+  static async createRequest(requestData: Omit<SheikhRequest, '_id' | 'createdAt' | 'updatedAt'>): Promise<SheikhRequest> {
+    const db = await getDatabase();
+    
+    const request: Omit<SheikhRequest, '_id'> = {
+      ...requestData,
+      status: 'pending',
+      priority: 'medium',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+
+    const result = await db.collection('sheikhRequests').insertOne(request as any);
+    return { ...request, _id: result.insertedId.toString() };
+  }
+
+  static async updateRequest(id: string, updateData: Partial<SheikhRequest>): Promise<SheikhRequest | null> {
+    const db = await getDatabase();
+    
+    const result = await db.collection('sheikhRequests').findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: { ...updateData, updatedAt: new Date() } },
+      { returnDocument: 'after' }
+    );
+
+    return result as SheikhRequest | null;
+  }
+
+  static async deleteRequest(id: string): Promise<boolean> {
+    const db = await getDatabase();
+    
+    const result = await db.collection('sheikhRequests').deleteOne({ _id: new ObjectId(id) });
+    return result.deletedCount > 0;
+  }
+
+  static async getRequestById(id: string): Promise<SheikhRequest | null> {
+    const db = await getDatabase();
+    const request = await db.collection('sheikhRequests').findOne({ _id: new ObjectId(id) });
+    return request as SheikhRequest | null;
   }
 }
 

@@ -17,9 +17,26 @@ import {
   Users,
   Star
 } from "lucide-react"
+import { useEffect, useState } from "react"
+import { settingsAPI } from "@/lib/api"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
+  const [sitePhone, setSitePhone] = useState<string>("")
+  const [waNumber, setWaNumber] = useState<string>("")
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const s = await settingsAPI.get()
+        setSitePhone(s.contactPhone || "")
+        setWaNumber(s.whatsappNumber || "")
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    load()
+  }, [])
 
   const quickLinks = [
     { name: "الرئيسية", href: "/" },
@@ -88,7 +105,7 @@ export function Footer() {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-primary" />
-                <span className="arabic-text text-muted-foreground">+966 50 123 4567</span>
+                <span className="arabic-text text-muted-foreground" dir="ltr">{sitePhone || '+966 50 123 4567'}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Mail className="w-4 h-4 text-primary" />
@@ -161,13 +178,13 @@ export function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-border">
           {/* Copyright */}
           <div className="text-center md:text-right">
-            <p className="text-sm arabic-text text-muted-foreground">
+            <p className="text-sm arabic-text text-muted-foreground" dir="ltr">
               © {currentYear} مأذوني. جميع الحقوق محفوظة.
             </p>
           </div>
 
           {/* Social Links */}
-          <div className="flex items-center gap-4">
+          {/* <div className="flex items-center gap-4">
             <span className="text-sm arabic-text text-muted-foreground">تابعنا على:</span>
             <div className="flex items-center gap-2">
               {socialLinks.map((social) => {
@@ -187,19 +204,21 @@ export function Footer() {
                 )
               })}
             </div>
-          </div>
+          </div> */}
 
           {/* Contact Buttons */}
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" className="arabic-text bg-transparent" asChild>
-              <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${waNumber || '966501234567'}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="w-4 h-4 ml-2" />
                 واتساب
               </a>
             </Button>
-            <Button size="sm" className="arabic-text shadow-islamic">
-              <Phone className="w-4 h-4 ml-2" />
-              اتصال
+            <Button size="sm" className="arabic-text shadow-islamic" asChild>
+              <a href={sitePhone ? `tel:${sitePhone.replace(/\s/g,'')}` : '#'}>
+                <Phone className="w-4 h-4 ml-2" />
+                اتصال
+              </a>
             </Button>
           </div>
         </div>

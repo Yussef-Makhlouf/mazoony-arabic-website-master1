@@ -14,7 +14,8 @@ async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> 
     })
 
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.error || `API Error: ${response.status} ${response.statusText}`)
     }
 
     return await response.json()
@@ -87,7 +88,7 @@ export const reviewsAPI = {
   getAll: () => apiFetch<any[]>('/reviews'),
   
   // Get reviews by sheikh
-  getBySheikh: (sheikhSlug: string) => apiFetch<any[]>(`/reviews?sheikh=${sheikhSlug}`),
+  getBySheikh: (sheikhId: string) => apiFetch<any[]>(`/reviews?sheikhId=${sheikhId}`),
   
   // Create review
   create: (reviewData: any) => apiFetch<any>('/reviews', {
@@ -107,10 +108,22 @@ export const reviewsAPI = {
   }),
 }
 
+// Settings API
+export const settingsAPI = {
+  get: () => apiFetch<any>('/settings'),
+  update: (data: any) => apiFetch<any>('/settings', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  }),
+}
+
 // Messages API function
 export const messagesAPI = {
   // Get all messages
   getAll: () => apiFetch<any[]>('/messages'),
+  
+  // Get messages by status
+  getByStatus: (status: string) => apiFetch<any[]>(`/messages?status=${status}`),
   
   // Create message
   create: (messageData: any) => apiFetch<any>('/messages', {
@@ -128,4 +141,64 @@ export const messagesAPI = {
   delete: (messageId: string) => apiFetch<any>(`/messages/${messageId}`, {
     method: 'DELETE',
   }),
+}
+
+// Sheikh Requests API function
+export const sheikhRequestsAPI = {
+  // Get all requests
+  getAll: () => apiFetch<any[]>('/sheikh-requests'),
+  
+  // Get requests by sheikh
+  getBySheikh: (sheikhId: string) => apiFetch<any[]>(`/sheikh-requests?sheikhId=${sheikhId}`),
+  
+  // Get requests by status
+  getByStatus: (status: string) => apiFetch<any[]>(`/sheikh-requests?status=${status}`),
+  
+  // Create request
+  create: (requestData: any) => apiFetch<any>('/sheikh-requests', {
+    method: 'POST',
+    body: JSON.stringify(requestData),
+  }),
+  
+  // Update request
+  update: (requestId: string, requestData: any) => apiFetch<any>(`/sheikh-requests/${requestId}`, {
+    method: 'PUT',
+    body: JSON.stringify(requestData),
+  }),
+  
+  // Delete request
+  delete: (requestId: string) => apiFetch<any>(`/sheikh-requests/${requestId}`, {
+    method: 'DELETE',
+  }),
+}
+
+// Admin API functions
+export const adminAPI = {
+  // Messages
+  messages: {
+    // Respond to message
+    respond: (messageId: string, responseData: any) => apiFetch<any>(`/admin/messages/${messageId}`, {
+      method: 'PUT',
+      body: JSON.stringify(responseData),
+    }),
+    
+    // Delete message
+    delete: (messageId: string) => apiFetch<any>(`/admin/messages/${messageId}`, {
+      method: 'DELETE',
+    }),
+  },
+  
+  // Reviews
+  reviews: {
+    // Approve/Reject review
+    updateStatus: (reviewId: string, statusData: any) => apiFetch<any>(`/admin/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify(statusData),
+    }),
+    
+    // Delete review
+    delete: (reviewId: string) => apiFetch<any>(`/admin/reviews/${reviewId}`, {
+      method: 'DELETE',
+    }),
+  },
 }

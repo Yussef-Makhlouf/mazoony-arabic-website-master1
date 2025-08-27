@@ -300,8 +300,8 @@ export default function SheikhDetailsModal({ sheikh, isOpen, onClose }: SheikhDe
                     <div className="flex items-center gap-3">
                       <Phone className="h-5 w-5 text-primary" />
                       <div>
-                        <div className="font-medium">رقم الهاتف</div>
-                        <div className="text-muted-foreground">{sheikh.phone}</div>
+                        <div className="font-medium arabic-text">رقم الهاتف</div>
+                        <div className="text-muted-foreground" dir="ltr">{sheikh.phone}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

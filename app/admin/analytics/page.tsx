@@ -152,93 +152,13 @@ export default function AdminAnalytics() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">الإحصائيات</h1>
-          <p className="text-gray-600">تحليل شامل لأداء النظام</p>
+          <p className="text-gray-600">تحليل شامل لمعلومات النظام</p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant={timeRange === "week" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTimeRange("week")}
-          >
-            أسبوع
-          </Button>
-          <Button
-            variant={timeRange === "month" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTimeRange("month")}
-          >
-            شهر
-          </Button>
-          <Button
-            variant={timeRange === "year" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setTimeRange("year")}
-          >
-            سنة
-          </Button>
-        </div>
+
       </div>
 
-      {/* Main Stats */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="إجمالي المدن"
-          value={totalStats.totalCities}
-          change={12}
-          icon={Building2}
-          color="text-blue-600"
-          description="مدينة مسجلة"
-        />
-        <StatCard
-          title="إجمالي المأذونين"
-          value={totalStats.totalSheikhs}
-          change={8}
-          icon={Users}
-          color="text-green-600"
-          description="مأذون مسجل"
-        />
-        <StatCard
-          title="التقييمات"
-          value={totalStats.totalReviews}
-          change={15}
-          icon={Star}
-          color="text-yellow-600"
-          description="تقييم مقدم"
-        />
-        <StatCard
-          title="متوسط التقييم"
-          value={totalStats.averageRating}
-          change={2}
-          icon={BarChart3}
-          color="text-purple-600"
-          description="من 5 نجوم"
-        />
-      </div>
 
-      {/* Additional Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          title="المدن المميزة"
-          value={totalStats.featuredCities}
-          icon={TrendingUp}
-          color="text-orange-600"
-          description="مدينة مميزة"
-        />
-        <StatCard
-          title="المأذونين المتاحين"
-          value={totalStats.activeSheikhs}
-          icon={Eye}
-          color="text-emerald-600"
-          description="متاح للعمل"
-        />
-        <StatCard
-          title="المأذونين المعتمدين"
-          value={totalStats.verifiedSheikhs}
-          icon={Users}
-          color="text-indigo-600"
-          description="معتمد رسمياً"
-        />
-      </div>
+
 
       {/* Charts and Detailed Stats */}
       <div className="grid gap-6 lg:grid-cols-2">
@@ -324,83 +244,7 @@ export default function AdminAnalytics() {
         </div>
       </ChartCard>
 
-      {/* Activity Overview */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              النشاط الشهري
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">المأذونين الجدد</span>
-                <span className="font-medium text-green-600">+12</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">التقييمات الجديدة</span>
-                <span className="font-medium text-blue-600">+45</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">الطلبات الجديدة</span>
-                <span className="font-medium text-purple-600">+89</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5" />
-              التفاعل
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">الزيارات</span>
-                <span className="font-medium">1,247</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">الرسائل</span>
-                <span className="font-medium">156</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">المكالمات</span>
-                <span className="font-medium">89</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              النمو
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">نمو المأذونين</span>
-                <span className="font-medium text-green-600">+8%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">نمو المدن</span>
-                <span className="font-medium text-blue-600">+12%</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">نمو التقييمات</span>
-                <span className="font-medium text-yellow-600">+15%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }

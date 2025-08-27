@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { toast } from "sonner"
 import { DeleteModal } from "@/components/ui/delete-modal"
-import { messagesAPI } from "@/lib/api"
+import { messagesAPI, adminAPI } from "@/lib/api"
 import { 
   MessageSquare, 
   Search, 
@@ -17,12 +18,11 @@ import {
   XCircle,
   Eye,
   Trash2,
-  Reply,
   Mail,
   Calendar,
   User,
   Phone,
-  Send
+  Loader2
 } from "lucide-react"
 
 export default function AdminMessages() {
@@ -33,11 +33,12 @@ export default function AdminMessages() {
   const [messages, setMessages] = useState<any[]>([])
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
-    messageId: 0,
+    messageId: "",
     messageSubject: ""
   })
   const [isDeleting, setIsDeleting] = useState(false)
-  const { toast } = useToast()
+  const [isReplying, setIsReplying] = useState(false)
+  const [replyDialog, setReplyDialog] = useState(false)
 
   // جلب الرسائل من API
   useEffect(() => {
@@ -47,16 +48,12 @@ export default function AdminMessages() {
         setMessages(allMessages)
       } catch (error) {
         console.error('Error fetching messages:', error)
-        toast({
-          title: "خطأ",
-          description: "فشل في جلب الرسائل",
-          variant: "destructive",
-        })
+        toast.error("فشل في جلب الرسائل")
       }
     }
     
     fetchMessages()
-  }, [toast])
+  }, [])
 
   const filteredMessages = messages.filter(message => {
     const matchesSearch = 
@@ -70,135 +67,71 @@ export default function AdminMessages() {
     return matchesSearch && matchesStatus
   })
 
-  const handleMarkAsRead = async (messageId: number) => {
+  const handleMarkAsRead = async (messageId: string) => {
     try {
-      await messagesAPI.update(messageId.toString(), { status: "read" })
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, status: "read" } : msg
-      ))
-      toast({
-        title: "نجح",
-        description: "تم تحديد الرسالة كمقروءة",
+      await adminAPI.messages.respond(messageId, { 
+        status: "read",
+        response: ""
       })
+      setMessages(prev => prev.map(msg => 
+        msg._id === messageId ? { ...msg, status: "read" } : msg
+      ))
+      toast.success("تم تحديد الرسالة كمقروءة")
     } catch (error) {
       console.error('Error marking message as read:', error)
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث حالة الرسالة",
-        variant: "destructive",
-      })
+      toast.error("حدث خطأ في تحديث حالة الرسالة")
     }
   }
 
-  const handleMarkAsReplied = async (messageId: number) => {
-    try {
-      await messagesAPI.update(messageId.toString(), { status: "replied" })
-      setMessages(prev => prev.map(msg => 
-        msg.id === messageId ? { ...msg, status: "replied" } : msg
-      ))
-      toast({
-        title: "نجح",
-        description: "تم تحديد الرسالة كرد",
-      })
-    } catch (error) {
-      console.error('Error marking message as replied:', error)
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في تحديث حالة الرسالة",
-        variant: "destructive",
-      })
-    }
-  }
+  // تم إلغاء الردود من لوحة التحكم - القراءة فقط
 
-  const openDeleteModal = (messageId: number, messageSubject: string) => {
-    setDeleteModal({
-      isOpen: true,
-      messageId,
-      messageSubject
-    })
-  }
+  // تم إلغاء إغلاق الرسائل من لوحة التحكم
 
-  const closeDeleteModal = () => {
-    setDeleteModal({
-      isOpen: false,
-      messageId: 0,
-      messageSubject: ""
-    })
-  }
+  const handleDelete = async () => {
+    if (!deleteModal.messageId) return
 
-  const handleDeleteMessage = async () => {
     setIsDeleting(true)
     try {
-      await messagesAPI.delete(deleteModal.messageId.toString())
-      setMessages(prev => prev.filter(msg => msg.id !== deleteModal.messageId))
-      toast({
-        title: "نجح",
-        description: "تم حذف الرسالة بنجاح",
-      })
-      closeDeleteModal()
+      await adminAPI.messages.delete(deleteModal.messageId)
+      setMessages(prev => prev.filter(msg => msg._id !== deleteModal.messageId))
+      toast.success("تم حذف الرسالة بنجاح")
+      setDeleteModal({ isOpen: false, messageId: "", messageSubject: "" })
     } catch (error) {
       console.error('Error deleting message:', error)
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ في حذف الرسالة",
-        variant: "destructive",
-      })
+      toast.error("حدث خطأ في حذف الرسالة")
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const handleReply = () => {
-    if (replyText.trim() && selectedMessage) {
-      // هنا سيتم إرسال الرد
-      console.log("إرسال رد:", replyText)
-      handleMarkAsReplied(selectedMessage.id)
-      setReplyText("")
-      setSelectedMessage(null)
-      toast({
-        title: "نجح",
-        description: "تم إرسال الرد بنجاح",
-      })
-    } else {
-      toast({
-        title: "خطأ",
-        description: "يرجى كتابة نص الرد",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
-      case "unread":
-        return "bg-blue-100 text-blue-800"
+      case "new":
+        return <Badge variant="default" className="bg-blue-100 text-blue-800 border-blue-200">جديد</Badge>
       case "read":
-        return "bg-gray-100 text-gray-800"
+        return <Badge variant="secondary">مقروء</Badge>
       case "replied":
-        return "bg-green-100 text-green-800"
+        return <Badge variant="default" className="bg-green-100 text-green-800 border-green-200">
+          <CheckCircle className="w-3 h-3 ml-1" />
+          تم الرد
+        </Badge>
+      case "closed":
+        return <Badge variant="destructive">مغلق</Badge>
       default:
-        return "bg-gray-100 text-gray-800"
+        return <Badge variant="outline">{status}</Badge>
     }
   }
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800"
-      case "medium":
-        return "bg-yellow-100 text-yellow-800"
-      case "low":
-        return "bg-green-100 text-green-800"
-      default:
-        return "bg-gray-100 text-gray-800"
+  const getSubjectText = (subject: string) => {
+    const subjects: { [key: string]: string } = {
+      general: "استفسار عام",
+      sheikh: "طلب مأذون",
+      registration: "التسجيل كـ مأذون",
+      support: "الدعم الفني",
+      complaint: "شكوى",
+      suggestion: "اقتراح"
     }
-  }
-
-  const stats = {
-    totalMessages: messages.length,
-    unreadMessages: messages.filter(m => m.status === "unread").length,
-    repliedMessages: messages.filter(m => m.status === "replied").length,
-    highPriorityMessages: messages.filter(m => m.priority === "high").length
+    return subjects[subject] || subject
   }
 
   return (
@@ -206,305 +139,134 @@ export default function AdminMessages() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">إدارة الرسائل</h1>
-          <p className="text-gray-600">إدارة جميع الرسائل والاستفسارات</p>
+          <h1 className="text-3xl font-bold arabic-heading text-foreground">إدارة الرسائل</h1>
+          <p className="arabic-text text-muted-foreground">إدارة رسائل التواصل من الزوار</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-8 w-8 text-primary" />
+          <span className="arabic-text font-semibold text-foreground">{messages.length} رسالة</span>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">إجمالي الرسائل</CardTitle>
-            <MessageSquare className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMessages}</div>
-            <p className="text-xs text-muted-foreground">رسالة واردة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">الرسائل الجديدة</CardTitle>
-            <Mail className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.unreadMessages}</div>
-            <p className="text-xs text-muted-foreground">رسالة غير مقروءة</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">الردود المرسلة</CardTitle>
-            <Reply className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.repliedMessages}</div>
-            <p className="text-xs text-muted-foreground">رسالة تم الرد عليها</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">عالية الأولوية</CardTitle>
-            <MessageSquare className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.highPriorityMessages}</div>
-            <p className="text-xs text-muted-foreground">رسالة عالية الأولوية</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>البحث والفلترة</CardTitle>
-          <CardDescription>البحث في الرسائل وفلترة النتائج</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <div>
+      {/* Filters */}
+      <Card className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
               <div className="relative">
-                <Search className="absolute right-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="البحث في الرسائل..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 arabic-text"
                 />
               </div>
             </div>
-            
-            <div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md bg-white"
+                className="p-2 border border-border rounded-lg bg-background arabic-text"
               >
                 <option value="all">جميع الرسائل</option>
-                <option value="unread">غير مقروءة</option>
-                <option value="read">مقروءة</option>
-                <option value="replied">تم الرد عليها</option>
+                <option value="new">جديد</option>
+                <option value="read">مقروء</option>
+                <option value="replied">تم الرد</option>
+                <option value="closed">مغلق</option>
               </select>
-            </div>
-
-            <div>
-              <select className="w-full p-2 border border-gray-300 rounded-md bg-white">
-                <option value="all">جميع الأولويات</option>
-                <option value="high">عالية</option>
-                <option value="medium">متوسطة</option>
-                <option value="low">منخفضة</option>
-              </select>
-            </div>
-
-            <div>
-              <Button variant="outline" className="w-full">
-                <Filter className="w-4 h-4 ml-2" />
-                فلترة متقدمة
-              </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Messages List and Detail */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* Messages List */}
-        <Card>
-          <CardHeader>
-            <CardTitle>قائمة الرسائل</CardTitle>
-            <CardDescription>
-              عرض {filteredMessages.length} من {messages.length} رسالة
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {filteredMessages.map((message) => (
-                <div 
-                  key={message.id} 
-                  className={`border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
-                    selectedMessage?.id === message.id ? 'bg-blue-50 border-blue-200' : ''
-                  } ${message.status === 'unread' ? 'border-l-4 border-l-blue-500' : ''}`}
-                  onClick={() => {
-                    setSelectedMessage(message)
-                    if (message.status === 'unread') {
-                      handleMarkAsRead(message.id)
-                    }
-                  }}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <div className="font-medium">{message.name}</div>
-                        <Badge className={getPriorityColor(message.priority)}>
-                          {message.priority === 'high' ? 'عالية' : 
-                           message.priority === 'medium' ? 'متوسطة' : 'منخفضة'}
-                        </Badge>
-                        {message.status === 'unread' && (
-                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                      <div className="text-sm font-medium text-gray-900 mb-1">
-                        {message.subject}
-                      </div>
-                      <div className="text-sm text-gray-600 line-clamp-2">
-                        {message.message}
-                      </div>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {message.date} {message.time}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-3 h-3" />
-                          {message.email}
-                        </div>
-                      </div>
-                    </div>
-                    
+      {/* Messages List */}
+      <div className="grid gap-4">
+        {filteredMessages.map((message) => (
+          <Card key={message._id} className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm hover-lift">
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="arabic-heading font-semibold text-foreground text-lg">{message.name}</h3>
+                    {getStatusBadge(message.status)}
+                  </div>
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
                     <div className="flex items-center gap-1">
-                      <Badge className={getStatusColor(message.status)}>
-                        {message.status === 'unread' ? 'جديدة' :
-                         message.status === 'read' ? 'مقروءة' : 'تم الرد'}
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredMessages.length === 0 && (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">لا توجد رسائل مطابقة لبحثك</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Message Detail */}
-        <Card>
-          <CardHeader>
-            <CardTitle>تفاصيل الرسالة</CardTitle>
-            <CardDescription>
-              {selectedMessage ? 'عرض تفاصيل الرسالة المحددة' : 'اختر رسالة لعرض تفاصيلها'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {selectedMessage ? (
-              <div className="space-y-4">
-                {/* Message Info */}
-                <div className="border rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium">{selectedMessage.name}</div>
-                      <div className="text-sm text-gray-500">{selectedMessage.email}</div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge className={getPriorityColor(selectedMessage.priority)}>
-                        {selectedMessage.priority === 'high' ? 'عالية' : 
-                         selectedMessage.priority === 'medium' ? 'متوسطة' : 'منخفضة'}
-                      </Badge>
-                      <Badge className={getStatusColor(selectedMessage.status)}>
-                        {selectedMessage.status === 'unread' ? 'جديدة' :
-                         selectedMessage.status === 'read' ? 'مقروءة' : 'تم الرد'}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="mb-3">
-                    <div className="font-medium text-lg mb-2">{selectedMessage.subject}</div>
-                    <p className="text-gray-700">{selectedMessage.message}</p>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {selectedMessage.date} {selectedMessage.time}
+                      <Mail className="h-4 w-4" />
+                      <span>{message.email}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Phone className="w-3 h-3" />
-                      {selectedMessage.phone}
+                      <Phone className="h-4 w-4" />
+                      <span>{message.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(message.createdAt).toLocaleDateString('ar-SA')}</span>
                     </div>
                   </div>
-                </div>
-
-                {/* Reply Section */}
-                <div className="border rounded-lg p-4">
-                  <h3 className="font-medium mb-3">الرد على الرسالة</h3>
-                  <Textarea
-                    placeholder="اكتب ردك هنا..."
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    rows={4}
-                    className="mb-3"
-                  />
                   <div className="flex items-center gap-2">
-                    <Button onClick={handleReply} disabled={!replyText.trim()}>
-                      <Send className="w-4 h-4 ml-2" />
-                      إرسال الرد
-                    </Button>
-                    <Button variant="outline" onClick={() => setReplyText("")}>
-                      مسح
-                    </Button>
+                    <Badge variant="outline" className="arabic-text">
+                      {getSubjectText(message.subject)}
+                    </Badge>
                   </div>
                 </div>
-
-                {/* Actions */}
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleMarkAsRead(selectedMessage.id)}
-                    disabled={selectedMessage.status === 'read'}
+                    onClick={() => handleMarkAsRead(message._id)}
+                    disabled={message.status !== "new"}
                   >
-                    <Eye className="w-4 h-4 ml-2" />
-                    تحديد كمقروءة
+                    تحديد كمقروء
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleMarkAsReplied(selectedMessage.id)}
-                    disabled={selectedMessage.status === 'replied'}
+                    onClick={() => setDeleteModal({
+                      isOpen: true,
+                      messageId: message._id,
+                      messageSubject: message.subject
+                    })}
                   >
-                    <Reply className="w-4 h-4 ml-2" />
-                    تحديد كرد
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openDeleteModal(selectedMessage.id, selectedMessage.subject)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="w-4 h-4 ml-2" />
-                    حذف
+                    <Trash2 className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8">
-                <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">اختر رسالة لعرض تفاصيلها</p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="arabic-heading font-medium text-foreground mb-2">الرسالة:</h4>
+                  <p className="arabic-text text-muted-foreground leading-relaxed">{message.message}</p>
+                </div>
+                {message.adminResponse && (
+                  <div className="border-r-4 border-primary pr-4 bg-primary/5 p-4 rounded-lg">
+                    <h4 className="arabic-heading font-medium text-foreground mb-2">الرد:</h4>
+                    <p className="arabic-text text-muted-foreground leading-relaxed">{message.adminResponse}</p>
+                    {message.respondedAt && (
+                      <p className="arabic-text text-xs text-muted-foreground mt-2">
+                        تم الرد في: {new Date(message.respondedAt).toLocaleDateString('ar-SA')}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        ))}
       </div>
+
+      {/* تم إلغاء نافذة الرد - قراءة فقط */}
 
       {/* Delete Modal */}
       <DeleteModal
         isOpen={deleteModal.isOpen}
-        onClose={closeDeleteModal}
-        onConfirm={handleDeleteMessage}
+        onClose={() => setDeleteModal({ isOpen: false, messageId: "", messageSubject: "" })}
+        onConfirm={handleDelete}
         title="حذف الرسالة"
-        description="هل أنت متأكد من حذف هذه الرسالة؟ سيتم حذفها نهائياً من النظام."
-        itemName={deleteModal.messageSubject}
+        description={`هل أنت متأكد من حذف رسالة "${getSubjectText(deleteModal.messageSubject)}"؟`}
         isLoading={isDeleting}
       />
     </div>

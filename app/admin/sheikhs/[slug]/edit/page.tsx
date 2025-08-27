@@ -52,6 +52,7 @@ export default function EditSheikh() {
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [error, setError] = useState("")
+  const [imagePreview, setImagePreview] = useState<string>("")
 
   // تحميل المدن من API
   useEffect(() => {
@@ -109,6 +110,7 @@ export default function EditSheikh() {
             price: sheikhData.price || "",
             verified: sheikhData.verified || false
           })
+          if (sheikhData.image) setImagePreview(sheikhData.image)
         } else {
           setError("فشل في تحميل بيانات المأذون")
           toast({
@@ -231,7 +233,8 @@ export default function EditSheikh() {
         education: formData.education,
         languages: formData.languages,
         price: formData.price,
-        verified: formData.verified
+        verified: formData.verified,
+        image: imagePreview || ""
       }
 
       const response = await fetch(`/api/sheikhs/${slug}`, {
@@ -409,6 +412,26 @@ export default function EditSheikh() {
                   onChange={(e) => handleInputChange("price", e.target.value)}
                   placeholder="مثال: 500 ريال"
                 />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="image">صورة المأذون</Label>
+                <input
+                  id="image"
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    const reader = new FileReader()
+                    reader.onloadend = () => setImagePreview(reader.result as string)
+                    reader.readAsDataURL(file)
+                  }}
+                />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img src={imagePreview} alt="معاينة الصورة" className="w-32 h-32 object-cover rounded-lg border" />
+                  </div>
+                )}
               </div>
             </div>
 

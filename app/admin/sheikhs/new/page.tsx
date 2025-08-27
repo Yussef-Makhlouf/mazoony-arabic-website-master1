@@ -46,6 +46,7 @@ export default function NewSheikh() {
   const [newSpecialty, setNewSpecialty] = useState("")
   const [newLanguage, setNewLanguage] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [imagePreview, setImagePreview] = useState<string>("")
 
   // تحميل المدن من API
   useEffect(() => {
@@ -108,6 +109,18 @@ export default function NewSheikh() {
         }))
       }
     }
+  }
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const base64 = reader.result as string
+      setImagePreview(base64)
+      setFormData(prev => ({ ...prev, image: base64 }))
+    }
+    reader.readAsDataURL(file)
   }
 
   const addSpecialty = () => {
@@ -184,7 +197,8 @@ export default function NewSheikh() {
           ease: 5,
           knowledge: 5,
           price: 5
-        }
+        },
+        image: (formData as any).image || ""
       }
 
       const response = await fetch("/api/sheikhs", {
@@ -320,6 +334,15 @@ export default function NewSheikh() {
                   onChange={(e) => handleInputChange("price", e.target.value)}
                   placeholder="مثال: 500 ريال"
                 />
+              </div>
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="image">صورة المأذون</Label>
+                <input id="image" type="file" accept="image/*" onChange={handleImageChange} />
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img src={imagePreview} alt="معاينة الصورة" className="w-32 h-32 object-cover rounded-lg border" />
+                  </div>
+                )}
               </div>
             </div>
 

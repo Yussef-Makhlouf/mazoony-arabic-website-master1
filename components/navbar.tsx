@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { settingsAPI } from "@/lib/api"
 import { Card } from "@/components/ui/card"
 import { 
   Menu, 
@@ -32,6 +33,8 @@ export function NavBar() {
   const [isCitiesDropdownOpen, setIsCitiesDropdownOpen] = useState(false)
   const [cities, setCities] = useState<City[]>([])
   const [isLoadingCities, setIsLoadingCities] = useState(false)
+  const [sitePhone, setSitePhone] = useState<string>("")
+  const [waNumber, setWaNumber] = useState<string>("")
 
   // Fetch cities from API
   useEffect(() => {
@@ -51,6 +54,19 @@ export function NavBar() {
     }
 
     fetchCities()
+  }, [])
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const s = await settingsAPI.get()
+        setSitePhone(s.contactPhone || "")
+        setWaNumber(s.whatsappNumber || "")
+      } catch (e) {
+        console.error('Error loading settings', e)
+      }
+    }
+    loadSettings()
   }, [])
 
   // Close dropdown when clicking outside
@@ -172,14 +188,16 @@ export function NavBar() {
           {/* Contact Buttons */}
           <div className="hidden md:flex items-center gap-3">
             <Button variant="outline" size="sm" className="arabic-text bg-transparent" asChild>
-              <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
+              <a href={`https://wa.me/${waNumber || '966501234567'}`} target="_blank" rel="noopener noreferrer">
                 <MessageCircle className="w-4 h-4 ml-2" />
                 واتساب
               </a>
             </Button>
-            <Button size="sm" className="arabic-text shadow-islamic">
-              <Phone className="w-4 h-4 ml-2" />
-              اتصال
+            <Button size="sm" className="arabic-text shadow-islamic" asChild>
+              <a href={sitePhone ? `tel:${sitePhone.replace(/\s/g,'')}` : '#'}>
+                <Phone className="w-4 h-4 ml-2" />
+                اتصال
+              </a>
             </Button>
           </div>
 
@@ -271,14 +289,16 @@ export function NavBar() {
 
               <div className="flex gap-2 pt-4 border-t border-border">
                 <Button variant="outline" size="sm" className="flex-1 arabic-text bg-transparent" asChild>
-                  <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
+                  <a href={`https://wa.me/${waNumber || '966501234567'}`} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-4 h-4 ml-2" />
                     واتساب
                   </a>
                 </Button>
-                <Button size="sm" className="flex-1 arabic-text shadow-islamic">
-                  <Phone className="w-4 h-4 ml-2" />
-                  اتصال
+                <Button size="sm" className="flex-1 arabic-text shadow-islamic" asChild>
+                  <a href={sitePhone ? `tel:${sitePhone.replace(/\s/g,'')}` : '#'}>
+                    <Phone className="w-4 h-4 ml-2" />
+                    اتصال
+                  </a>
                 </Button>
               </div>
             </div>

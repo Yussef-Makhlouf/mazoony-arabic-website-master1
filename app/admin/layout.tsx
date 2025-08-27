@@ -69,7 +69,7 @@ export default function AdminLayout({
       current: pathname.startsWith("/admin/analytics")
     },
     {
-      name: "الإعدادات",
+      name: "اعدادات التواصل",
       href: "/admin/settings",
       icon: Settings,
       current: pathname.startsWith("/admin/settings")

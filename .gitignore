@@ -161,3 +161,4 @@ pnpm-lock.yaml
 .Trashes
 ehthumbs.db
 Thumbs.db
+.vercel

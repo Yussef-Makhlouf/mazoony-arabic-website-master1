@@ -69,6 +69,7 @@ async function createCollections(db: Db): Promise<void> {
     'sheikhs', 
     'reviews',
     'messages',
+    'sheikhRequests',
     'users',
     'settings',
     'activityLogs',
@@ -201,7 +202,6 @@ async function seedInitialData(db: Db): Promise<void> {
 async function seedCities(db: Db): Promise<void> {
   const cities = [
     { 
-      _id: "riyadh", 
       name: "الرياض", 
       slug: "al-riyadh", 
       count: 28,
@@ -214,7 +214,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "jeddah", 
       name: "جدة", 
       slug: "jeddah", 
       count: 22,
@@ -227,7 +226,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "makkah", 
       name: "مكة المكرمة", 
       slug: "makkah-al-mukarramah", 
       count: 15,
@@ -240,7 +238,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "madinah", 
       name: "المدينة المنورة", 
       slug: "al-madinah-al-munawwarah", 
       count: 18,
@@ -253,7 +250,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "dammam", 
       name: "الدمام", 
       slug: "dammam", 
       count: 16,
@@ -266,7 +262,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "taif", 
       name: "الطائف", 
       slug: "al-taif", 
       count: 12,
@@ -279,7 +274,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "tabuk", 
       name: "تبوك", 
       slug: "tabuk", 
       count: 10,
@@ -292,7 +286,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "abha", 
       name: "أبها", 
       slug: "abha", 
       count: 9,
@@ -305,7 +298,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "hail", 
       name: "حائل", 
       slug: "hail", 
       count: 7,
@@ -318,7 +310,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "qassim", 
       name: "القصيم", 
       slug: "al-qassim", 
       count: 11,
@@ -331,7 +322,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "yanbu", 
       name: "ينبع", 
       slug: "yanbu", 
       count: 8,
@@ -344,7 +334,6 @@ async function seedCities(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     { 
-      _id: "khobar", 
       name: "الخبر", 
       slug: "al-khobar", 
       count: 14,
@@ -365,7 +354,6 @@ async function seedCities(db: Db): Promise<void> {
 async function seedSheikhs(db: Db): Promise<void> {
   const sheikhs = [
     {
-      _id: "sheikh-1",
       name: "الشيخ عبدالرحمن بن سفر المالكي",
       slug: "abdulrahman-safer-al-malki",
       cityId: "makkah",
@@ -395,7 +383,6 @@ async function seedSheikhs(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     {
-      _id: "sheikh-2",
       name: "الشيخ محمد بن عناد الشربط",
       slug: "mohammed-enaad-al-sharbat",
       cityId: "makkah",
@@ -425,7 +412,6 @@ async function seedSheikhs(db: Db): Promise<void> {
       updatedAt: new Date()
     },
     {
-      _id: "sheikh-3",
       name: "الشيخ أحمد بن علي الحارثي",
       slug: "ahmed-ali-al-harthi",
       cityId: "makkah",

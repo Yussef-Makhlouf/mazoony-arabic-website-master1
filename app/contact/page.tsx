@@ -1,10 +1,15 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { toast } from "sonner"
 import { 
   Phone, 
   MessageCircle, 
@@ -13,20 +18,23 @@ import {
   Send,
   Clock,
   Users,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react"
 import Link from "next/link"
 import { NavBar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { contactFormSchema, type ContactFormData } from "@/lib/validations"
+import { messagesAPI, settingsAPI } from "@/lib/api"
 
-const contactMethods = [
+const contactMethodsTemplate = (phone: string, wa: string) => [
   {
     icon: Phone,
     title: "اتصل بنا",
     description: "اتصل بنا مباشرة على الرقم التالي",
-    value: "+966 50 123 4567",
+    value: phone || "+966 50 123 4567",
     action: "اتصال الآن",
-    href: "tel:+966501234567",
+    href: `tel:${(phone || '+966501234567').replace(/\s/g,'')}`,
     color: "text-primary",
     bgColor: "bg-primary/10",
   },
@@ -34,9 +42,9 @@ const contactMethods = [
     icon: MessageCircle,
     title: "واتساب",
     description: "تواصل معنا عبر واتساب للحصول على رد سريع",
-    value: "+966 50 123 4567",
+    value: wa || "+966 50 123 4567",
     action: "فتح واتساب",
-    href: "https://wa.me/966501234567",
+    href: `https://wa.me/${wa || '966501234567'}`,
     color: "text-green-600",
     bgColor: "bg-green-100",
   },
@@ -90,6 +98,64 @@ const faqs = [
 ]
 
 export default function ContactPage() {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [sitePhone, setSitePhone] = useState<string>("")
+  const [waNumber, setWaNumber] = useState<string>("")
+  const [contactMethods, setContactMethods] = useState<any[]>([])
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const s = await settingsAPI.get()
+        const phone = s.contactPhone || ""
+        const wa = s.whatsappNumber || ""
+        setSitePhone(phone)
+        setWaNumber(wa)
+        setContactMethods(contactMethodsTemplate(phone, wa))
+      } catch (e) {
+        setContactMethods(contactMethodsTemplate("", ""))
+      }
+    }
+    load()
+  }, [])
+
+  const form = useForm<ContactFormData>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      subject: "general",
+      message: ""
+    }
+  })
+
+  const onSubmit = async (data: ContactFormData) => {
+    setIsSubmitting(true)
+    
+    try {
+      await messagesAPI.create(data)
+      
+      toast.success("تم إرسال رسالتك بنجاح!", {
+        description: "سنقوم بالرد عليك في أقرب وقت ممكن",
+        duration: 5000,
+      })
+      
+      // Reset form
+      form.reset()
+    } catch (error: any) {
+      console.error("Error submitting form:", error)
+      
+      toast.error("حدث خطأ في إرسال الرسالة", {
+        description: error.message || "يرجى المحاولة مرة أخرى",
+        duration: 5000,
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-background rtl">
       <NavBar />
@@ -126,95 +192,159 @@ export default function ContactPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-3">
-                      <Label htmlFor="firstName" className="arabic-text font-medium text-foreground">
-                        الاسم الأول
-                      </Label>
-                      <Input
-                        id="firstName"
-                        placeholder="أدخل اسمك الأول"
-                        className="arabic-text bg-background border-primary/20 focus:border-primary"
-                        required
+                <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="arabic-text font-medium text-foreground">
+                              الاسم الأول
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="أدخل اسمك الأول"
+                                className="arabic-text bg-background border-primary/20 focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="arabic-text font-medium text-foreground">
+                              اسم العائلة
+                            </FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="أدخل اسم العائلة"
+                                className="arabic-text bg-background border-primary/20 focus:border-primary"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
-                    <div className="space-y-3">
-                      <Label htmlFor="lastName" className="arabic-text font-medium text-foreground">
-                        اسم العائلة
-                      </Label>
-                      <Input
-                        id="lastName"
-                        placeholder="أدخل اسم العائلة"
-                        className="arabic-text bg-background border-primary/20 focus:border-primary"
-                        required
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="email" className="arabic-text font-medium text-foreground">
-                      البريد الإلكتروني
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="example@email.com"
-                      className="arabic-text bg-background border-primary/20 focus:border-primary"
-                      required
+                    
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="arabic-text font-medium text-foreground">
+                            البريد الإلكتروني
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="example@email.com"
+                              className="arabic-text bg-background border-primary/20 focus:border-primary"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="phone" className="arabic-text font-medium text-foreground">
-                      رقم الهاتف
-                    </Label>
-                    <Input
-                      id="phone"
-                      placeholder="05xxxxxxxx"
-                      className="arabic-text bg-background border-primary/20 focus:border-primary"
-                      required
+                    
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="arabic-text font-medium text-foreground">
+                            رقم الهاتف
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="05xxxxxxxx"
+                              className="arabic-text bg-background border-primary/20 focus:border-primary"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="subject" className="arabic-text font-medium text-foreground">
-                      الموضوع
-                    </Label>
-                    <select
-                      id="subject"
-                      className="w-full p-3 border border-primary/20 rounded-lg bg-background arabic-text focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      required
+                    
+                    <FormField
+                      control={form.control}
+                      name="subject"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="arabic-text font-medium text-foreground">
+                            الموضوع
+                          </FormLabel>
+                          <FormControl>
+                            <select
+                              className="w-full p-3 border border-primary/20 rounded-lg bg-background arabic-text focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              {...field}
+                            >
+                              <option value="general">استفسار عام</option>
+                              <option value="sheikh">طلب مأذون</option>
+                              <option value="registration">التسجيل كـ مأذون</option>
+                              <option value="support">الدعم الفني</option>
+                              <option value="complaint">شكوى</option>
+                              <option value="suggestion">اقتراح</option>
+                            </select>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="message"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="arabic-text font-medium text-foreground">
+                            الرسالة
+                          </FormLabel>
+                          <FormControl>
+                            <Textarea
+                              placeholder="اكتب رسالتك هنا..."
+                              rows={6}
+                              className="arabic-text bg-background border-primary/20 focus:border-primary resize-none"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <Button 
+                      type="submit" 
+                      size="lg" 
+                      className="w-full text-lg py-6 arabic-text shadow-islamic hover-lift"
+                      disabled={isSubmitting}
                     >
-                      <option value="">اختر الموضوع</option>
-                      <option value="general">استفسار عام</option>
-                      <option value="sheikh">طلب مأذون</option>
-                      <option value="registration">التسجيل كـ مأذون</option>
-                      <option value="support">الدعم الفني</option>
-                      <option value="complaint">شكوى</option>
-                      <option value="suggestion">اقتراح</option>
-                    </select>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <Label htmlFor="message" className="arabic-text font-medium text-foreground">
-                      الرسالة
-                    </Label>
-                    <Textarea
-                      id="message"
-                      placeholder="اكتب رسالتك هنا..."
-                      rows={6}
-                      className="arabic-text bg-background border-primary/20 focus:border-primary resize-none"
-                      required
-                    />
-                  </div>
-                  
-                  <Button type="submit" size="lg" className="w-full text-lg py-6 arabic-text shadow-islamic hover-lift">
-                    <Send className="w-5 h-5 ml-2" />
-                    إرسال الرسالة
-                    <ArrowRight className="w-5 h-5 mr-2" />
-                  </Button>
-                </form>
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-5 h-5 ml-2 animate-spin" />
+                          جاري الإرسال...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-5 h-5 ml-2" />
+                          إرسال الرسالة
+                          <ArrowRight className="w-5 h-5 mr-2" />
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
               </CardContent>
             </Card>
           </div>
@@ -243,11 +373,11 @@ export default function ContactPage() {
                             <p className="text-sm arabic-text text-muted-foreground mb-2">
                               {method.description}
                             </p>
-                            <p className="font-medium arabic-text text-foreground">
+                            <p className="font-medium arabic-text text-foreground" dir="ltr">
                               {method.value}
                             </p>
                           </div>
-                          <Button variant="outline" size="sm" className="arabic-text bg-transparent" asChild>
+                          <Button variant="outline" size="sm" className="arabic-text bg-transparent" asChild dir="ltr"> 
                             <a href={method.href} target={method.href.startsWith('http') ? "_blank" : "_self"} rel="noopener noreferrer">
                               {method.action}
                             </a>
@@ -292,41 +422,7 @@ export default function ContactPage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="mt-20">
-          <Card className="relative overflow-hidden shadow-islamic border-0">
-            <div className="absolute inset-0 gradient-islamic opacity-5"></div>
-            <div className="absolute inset-0 islamic-pattern opacity-10"></div>
-            <CardHeader className="text-center relative">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                <MessageCircle className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="text-3xl arabic-heading text-foreground mb-4">
-                نحن هنا لمساعدتك
-              </CardTitle>
-              <CardDescription className="text-xl arabic-text text-muted-foreground max-w-2xl mx-auto">
-                لا تتردد في التواصل معنا لأي استفسار أو طلب. فريقنا متاح دائماً لمساعدتك
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center relative">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="text-lg px-8 py-6 arabic-text shadow-islamic group" asChild>
-                  <a href="https://wa.me/966501234567" target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-                    واتساب مباشر
-                    <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-                  </a>
-                </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group" asChild>
-                  <a href="tel:+966501234567">
-                    <Phone className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-                    اتصال فوري
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+
       </main>
 
       <Footer />

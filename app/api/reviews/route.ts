@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ReviewService } from '@/lib/database'
+import { reviewFormSchema } from '@/lib/validations'
 
 // GET /api/reviews - Get reviews
 export async function GET(request: NextRequest) {
@@ -12,13 +13,15 @@ export async function GET(request: NextRequest) {
     
     if (sheikhId) {
       reviews = await ReviewService.getReviewsBySheikh(sheikhId)
-    } else if (status === 'pending') {
-      reviews = await ReviewService.getPendingReviews()
+    } else if (status) {
+      if (status === 'pending') {
+        reviews = await ReviewService.getPendingReviews()
+      } else {
+        reviews = await ReviewService.getReviewsByStatus(status)
+      }
     } else {
-      return NextResponse.json(
-        { error: 'sheikhId parameter is required' },
-        { status: 400 }
-      )
+      // Get all reviews for admin
+      reviews = await ReviewService.getAllReviews()
     }
     
     return NextResponse.json(reviews)
@@ -36,32 +39,36 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate required fields
-    if (!body.sheikhId || !body.name || !body.phone || !body.rating || !body.comment) {
+    // Validate with Zod schema
+    const validationResult = reviewFormSchema.safeParse(body)
+    
+    if (!validationResult.success) {
+      const errors = validationResult.error.errors.map(err => ({
+        field: err.path.join('.'),
+        message: err.message
+      }))
+      
       return NextResponse.json(
-        { error: 'sheikhId, name, phone, rating, and comment are required' },
+        { 
+          error: 'Validation failed',
+          details: errors
+        },
         { status: 400 }
       )
     }
 
-    // Validate rating
-    if (body.rating < 1 || body.rating > 5) {
-      return NextResponse.json(
-        { error: 'Rating must be between 1 and 5' },
-        { status: 400 }
-      )
-    }
+    const validatedData = validationResult.data
 
     const reviewData = {
-      sheikhId: body.sheikhId,
-      name: body.name,
-      phone: body.phone,
-      email: body.email || '',
-      rating: body.rating,
-      comment: body.comment,
-      status: 'pending' as const, // Fix status type
-      isVerified: false, // Add default verification status
-      reported: false // Add default reported status
+      sheikhId: validatedData.sheikhId,
+      name: validatedData.name,
+      phone: validatedData.phone,
+      email: validatedData.email || '',
+      rating: validatedData.rating,
+      comment: validatedData.comment,
+      status: 'pending' as const,
+      isVerified: false,
+      reported: false
     }
 
     const newReview = await ReviewService.createReview(reviewData)
