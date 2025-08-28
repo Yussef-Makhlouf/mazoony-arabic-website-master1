@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -30,25 +30,50 @@ export default function AdminSettings() {
     whatsappNumber: "966501234567",
   })
 
+  // Local state for input values to prevent re-render issues
+  const [localValues, setLocalValues] = useState({
+    contactPhone: "+966501234567",
+    whatsappNumber: "966501234567",
+  })
+
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  
+  // Use refs to store timeout IDs for proper debouncing
+  const timeoutRefs = useRef<{ [key: string]: NodeJS.Timeout }>({})
 
-  const handleSettingChange = (key: string, value: any) => {
-    setSettings(prev => ({
+  const handleInputChange = (key: string, value: string) => {
+    // Update local state immediately for smooth UI
+    setLocalValues(prev => ({
       ...prev,
       [key]: value
     }))
+    
+    // Clear existing timeout for this field
+    if (timeoutRefs.current[key]) {
+      clearTimeout(timeoutRefs.current[key])
+    }
+    
+    // Set new timeout for debounced update
+    timeoutRefs.current[key] = setTimeout(() => {
+      setSettings(prev => ({
+        ...prev,
+        [key]: value
+      }))
+      delete timeoutRefs.current[key]
+    }, 300)
   }
 
   useEffect(() => {
     const load = async () => {
       try {
         const s = await settingsAPI.get()
-        setSettings(prev => ({ 
-          ...prev, 
-          contactPhone: s.contactPhone || prev.contactPhone,
-          whatsappNumber: s.whatsappNumber || prev.whatsappNumber
-        }))
+        const newSettings = { 
+          contactPhone: s.contactPhone || settings.contactPhone,
+          whatsappNumber: s.whatsappNumber || settings.whatsappNumber
+        }
+        setSettings(newSettings)
+        setLocalValues(newSettings) // Sync local values
       } catch (e) {
         console.error('Error loading settings:', e)
       }
@@ -59,18 +84,19 @@ export default function AdminSettings() {
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      // Format the data according to SiteSettings interface
+      // Use local values for saving to ensure latest input
       const settingsData = {
-        contactPhone: settings.contactPhone,
-        whatsappNumber: settings.whatsappNumber,
+        contactPhone: localValues.contactPhone,
+        whatsappNumber: localValues.whatsappNumber,
       }
       
       const updated = await settingsAPI.update(settingsData)
-      setSettings(prev => ({ 
-        ...prev, 
+      const newSettings = {
         contactPhone: updated.contactPhone,
         whatsappNumber: updated.whatsappNumber
-      }))
+      }
+      setSettings(newSettings)
+      setLocalValues(newSettings) // Sync local values
       toast({
         title: "نجح",
         description: "تم حفظ الإعدادات بنجاح",
@@ -86,6 +112,15 @@ export default function AdminSettings() {
       setIsLoading(false)
     }
   }
+
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(timeoutRefs.current).forEach(timeout => {
+        clearTimeout(timeout)
+      })
+    }
+  }, [])
 
   const SettingSection = ({ title, icon: Icon, children }: any) => (
     <Card>
@@ -133,11 +168,11 @@ export default function AdminSettings() {
               <Label htmlFor="contactPhone">رقم الهاتف</Label>
               <Input 
                 id="contactPhone" 
-                value={settings.contactPhone}
+                value={localValues.contactPhone}
                 inputMode="tel"
                 autoComplete="tel"
                 dir="ltr"
-                onChange={(e) => handleSettingChange('contactPhone', e.target.value)}
+                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                 placeholder="+966501234567"
               />
             </div>
@@ -145,11 +180,11 @@ export default function AdminSettings() {
               <Label htmlFor="whatsappNumber">رقم الواتساب (دولي بدون +)</Label>
               <Input 
                 id="whatsappNumber" 
-                value={settings.whatsappNumber}
+                value={localValues.whatsappNumber}
                 inputMode="numeric"
                 autoComplete="tel-national"
                 dir="ltr"
-                onChange={(e) => handleSettingChange('whatsappNumber', e.target.value)}
+                onChange={(e) => handleInputChange('whatsappNumber', e.target.value)}
                 placeholder="966501234567"
               />
             </div>
