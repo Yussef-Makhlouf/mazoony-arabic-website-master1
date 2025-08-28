@@ -131,6 +131,9 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
                   <Input
                     id="phone"
                     value={formData.phone}
+                    inputMode="tel"
+                    autoComplete="tel"
+                    dir="ltr"
                     onChange={(e) => handleInputChange("phone", e.target.value)}
                     placeholder="+966501234567"
                     required
@@ -168,6 +171,9 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
                   <Input
                     id="price"
                     value={formData.price}
+                    inputMode="decimal"
+                    autoComplete="off"
+                    dir="ltr"
                     onChange={(e) => handleInputChange("price", e.target.value)}
                     placeholder="500"
                   />
@@ -242,7 +248,7 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
               <div className="space-y-4">
                 <Label>التخصصات</Label>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {formData.specialties.map((specialty, index) => (
+                  {formData.specialties.map((specialty: string, index: number) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-2">
                       {specialty}
                       <button

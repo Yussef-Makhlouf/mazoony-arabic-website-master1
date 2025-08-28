@@ -41,18 +41,17 @@ export const contactFormSchema = z.object({
 
 // Review Form Validation Schema
 export const reviewFormSchema = z.object({
-  sheikhId: z.string()
-    .min(1, "معرف المأذون مطلوب"),
+  sheikhId: z.string().min(1, "معرف المأذون مطلوب"),
+  sheikhName: z.string().optional().or(z.literal("")),
+  sheikhImage: z.string().optional().or(z.literal("")),
   
   name: z.string()
     .min(2, "الاسم يجب أن يكون على الأقل حرفين")
-    .max(100, "الاسم يجب أن لا يتجاوز 100 حرف")
-    .regex(/[\u0600-\u06FFa-zA-Z0-9\s]+/, "الاسم يمكن أن يحتوي على عربي/إنجليزي/أرقام"),
+    .max(100, "الاسم يجب أن لا يتجاوز 100 حرف"),
   
   phone: z.string()
-    .regex(/^05\d{8}$/, "رقم الهاتف يجب أن يبدأ بـ 05 ويتكون من 10 أرقام")
-    .min(10, "رقم الهاتف يجب أن يكون 10 أرقام")
-    .max(10, "رقم الهاتف يجب أن يكون 10 أرقام"),
+    .min(10, "رقم الهاتف يجب أن يكون على الأقل 10 أرقام")
+    .max(15, "رقم الهاتف يجب أن لا يتجاوز 15 رقم"),
   
   email: z.string()
     .email("البريد الإلكتروني غير صحيح")
@@ -66,7 +65,6 @@ export const reviewFormSchema = z.object({
   comment: z.string()
     .min(10, "التعليق يجب أن يكون على الأقل 10 أحرف")
     .max(500, "التعليق يجب أن لا يتجاوز 500 حرف")
-    .regex(/^[\u0600-\u06FF\s\.,!?()]+$/, "التعليق يجب أن يكون باللغة العربية")
 })
 
 // Sheikh Request Form Validation Schema

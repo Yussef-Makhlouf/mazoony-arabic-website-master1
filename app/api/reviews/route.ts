@@ -61,6 +61,8 @@ export async function POST(request: NextRequest) {
 
     const reviewData = {
       sheikhId: validatedData.sheikhId,
+      sheikhName: (validatedData as any).sheikhName || '',
+      sheikhImage: (validatedData as any).sheikhImage || '',
       name: validatedData.name,
       phone: validatedData.phone,
       email: validatedData.email || '',

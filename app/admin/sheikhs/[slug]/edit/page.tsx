@@ -388,6 +388,9 @@ export default function EditSheikh() {
                 <Input
                   id="phone"
                   value={formData.phone}
+                  inputMode="tel"
+                  autoComplete="tel"
+                  dir="ltr"
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   placeholder="مثال: +966501234567"
                   required
@@ -399,6 +402,9 @@ export default function EditSheikh() {
                 <Input
                   id="whatsapp"
                   value={formData.whatsapp}
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  dir="ltr"
                   onChange={(e) => handleInputChange("whatsapp", e.target.value)}
                   placeholder="مثال: +966501234567"
                 />

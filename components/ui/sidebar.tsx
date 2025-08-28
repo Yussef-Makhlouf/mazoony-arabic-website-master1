@@ -187,6 +187,7 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
+   
           className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
           style={
             {
@@ -254,10 +255,11 @@ function Sidebar({
 }
 
 function SidebarTrigger({
+  side = "right",
   className,
   onClick,
   ...props
-}: React.ComponentProps<typeof Button>) {
+}: React.ComponentProps<typeof Button> & { side?: "left" | "right" }) {
   const { toggleSidebar } = useSidebar()
 
   return (
@@ -266,7 +268,7 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn("size-7", className)}
+      className={cn("size-7", side === "right" ? "[&>svg]:rotate-180" : "", className)}
       onClick={(event) => {
         onClick?.(event)
         toggleSidebar()

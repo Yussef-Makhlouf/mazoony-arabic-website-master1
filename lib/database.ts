@@ -50,6 +50,8 @@ export interface Sheikh {
 export interface Review {
   _id?: string;
   sheikhId: string;
+  sheikhName?: string;
+  sheikhImage?: string;
   name: string;
   phone: string;
   email?: string;

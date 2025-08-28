@@ -1,10 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
+import { reviewsAPI } from "@/lib/api"
 import { 
   Menu, 
   X, 
@@ -29,7 +30,22 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [reviews, setReviews] = useState<any[]>([])
   const pathname = usePathname()
+
+  // جلب التقييمات لعرض العداد
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const reviewsData = await reviewsAPI.getAll()
+        setReviews(reviewsData)
+      } catch (error) {
+        console.error('Error fetching reviews for badge:', error)
+      }
+    }
+    
+    fetchReviews()
+  }, [])
 
   const navigation = [
     {
@@ -54,7 +70,8 @@ export default function AdminLayout({
       name: "التقييمات",
       href: "/admin/reviews",
       icon: FileText,
-      current: pathname.startsWith("/admin/reviews")
+      current: pathname.startsWith("/admin/reviews"),
+      badge: reviews?.filter(r => r.status === 'pending')?.length || 0
     },
     {
       name: "الرسائل",
@@ -69,7 +86,7 @@ export default function AdminLayout({
       current: pathname.startsWith("/admin/analytics")
     },
     {
-      name: "اعدادات التواصل",
+      name: "الإعدادات",
       href: "/admin/settings",
       icon: Settings,
       current: pathname.startsWith("/admin/settings")
@@ -151,6 +168,11 @@ export default function AdminLayout({
                   `} />
                   {!sidebarCollapsed && (
                     <span className="truncate">{item.name}</span>
+                  )}
+                  {item.badge && item.badge > 0 && (
+                    <span className="mr-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                      {item.badge}
+                    </span>
                   )}
                 </Link>
               )

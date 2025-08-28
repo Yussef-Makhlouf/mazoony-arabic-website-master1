@@ -259,6 +259,25 @@ export default function NewSheikh() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Image Upload - Top Circular Avatar */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full overflow-hidden border border-border shadow-md bg-muted">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="معاينة الصورة" className="w-full h-full object-cover" />
+                ) : (
+                  <img src="/placeholder-user.jpg" alt="صورة افتراضية" className="w-full h-full object-cover" />
+                )}
+              </div>
+              <label htmlFor="image" className="absolute -bottom-2 -right-2 cursor-pointer">
+                <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border border-primary/20">
+                  +
+                </div>
+              </label>
+              <input id="image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div className="grid gap-6 md:grid-cols-2">
@@ -310,6 +329,9 @@ export default function NewSheikh() {
                 <Input
                   id="phone"
                   value={formData.phone}
+                  inputMode="tel"
+                  autoComplete="tel"
+                  dir="ltr"
                   onChange={(e) => handleInputChange("phone", e.target.value)}
                   placeholder="مثال: +966501234567"
                   required
@@ -321,6 +343,9 @@ export default function NewSheikh() {
                 <Input
                   id="whatsapp"
                   value={formData.whatsapp}
+                  inputMode="numeric"
+                  autoComplete="tel-national"
+                  dir="ltr"
                   onChange={(e) => handleInputChange("whatsapp", e.target.value)}
                   placeholder="مثال: +966501234567"
                 />
@@ -335,15 +360,7 @@ export default function NewSheikh() {
                   placeholder="مثال: 500 ريال"
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="image">صورة المأذون</Label>
-                <input id="image" type="file" accept="image/*" onChange={handleImageChange} />
-                {imagePreview && (
-                  <div className="mt-2">
-                    <img src={imagePreview} alt="معاينة الصورة" className="w-32 h-32 object-cover rounded-lg border" />
-                  </div>
-                )}
-              </div>
+              
             </div>
 
             {/* Specialties */}

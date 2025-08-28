@@ -16,10 +16,11 @@ import { reviewsAPI } from "@/lib/api"
 interface ReviewFormProps {
   sheikhId: string
   sheikhName: string
+  sheikhImage?: string
   onSuccess?: () => void
 }
 
-export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps) {
+export function ReviewForm({ sheikhId, sheikhName, sheikhImage, onSuccess }: ReviewFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hoveredRating, setHoveredRating] = useState(0)
 
@@ -27,6 +28,8 @@ export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps)
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
       sheikhId,
+      sheikhName,
+      sheikhImage: sheikhImage || "",
       name: "",
       phone: "",
       email: "",
@@ -38,10 +41,13 @@ export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps)
   const currentRating = form.watch("rating")
 
   const onSubmit = async (data: ReviewFormData) => {
+    console.log("🔄 Starting review submission...", data)
     setIsSubmitting(true)
     
     try {
-      await reviewsAPI.create(data)
+      console.log("📤 Sending review data to API:", data)
+      const result = await reviewsAPI.create(data)
+      console.log("✅ Review submitted successfully:", result)
       
       toast.success("تم إرسال تقييمك بنجاح!", {
         description: "سيتم مراجعة التقييم وعرضه قريباً",
@@ -51,6 +57,8 @@ export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps)
       // Reset form
       form.reset({
         sheikhId,
+        sheikhName,
+        sheikhImage: sheikhImage || "",
         name: "",
         phone: "",
         email: "",
@@ -61,7 +69,12 @@ export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps)
       // Call success callback
       onSuccess?.()
     } catch (error: any) {
-      console.error("Error submitting review:", error)
+      console.error("❌ Error submitting review:", error)
+      console.error("Error details:", {
+        message: error.message,
+        stack: error.stack,
+        data: data
+      })
       
       toast.error("حدث خطأ في إرسال التقييم", {
         description: error.message || "يرجى المحاولة مرة أخرى",
@@ -69,6 +82,7 @@ export function ReviewForm({ sheikhId, sheikhName, onSuccess }: ReviewFormProps)
       })
     } finally {
       setIsSubmitting(false)
+      console.log("🏁 Review submission process completed")
     }
   }
 

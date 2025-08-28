@@ -171,12 +171,12 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
               </Button>
               <Button
                 variant="outline"
-                className="arabic-text bg-green-50  text-green-700 border-green-200  hover:bg-green-100 hover:text-green-700"
+                className="arabic-text bg-green-50  text-green-700 border-green-200  hover:bg-green-700 hover:text-green-700"
                 asChild
               >
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="w-4 h-4 ml-2" />
-                  واتساب
+                  <span className="arabic-text ">واتساب</span>
                 </a>
               </Button>
             </div>
@@ -271,10 +271,10 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
               <Button
                 size="sm"
                 variant="outline"
-                className="arabic-text bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                className="arabic-text bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-700"
                 asChild
               >
-                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" >
                   <MessageCircle className="w-4 h-4 ml-1" />
                   واتساب
                 </a>

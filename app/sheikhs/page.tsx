@@ -181,41 +181,7 @@ export default async function SheikhsPage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="mt-20">
-          <Card className="relative overflow-hidden shadow-islamic border-0">
-            <div className="absolute inset-0 gradient-islamic opacity-5"></div>
-            <div className="absolute inset-0 islamic-pattern opacity-10"></div>
-            <CardHeader className="text-center relative">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                <Award className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="text-3xl arabic-heading text-foreground mb-4">
-                هل أنت مأذون شرعي؟
-              </CardTitle>
-              <CardDescription className="text-xl arabic-text text-muted-foreground max-w-2xl mx-auto">
-                انضم إلى منصتنا وتواصل مع آلاف العملاء الباحثين عن خدماتك المتميزة
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center relative">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="https://wa.me/966555555555">
-                  <Button size="lg" className="text-lg px-8 py-6 arabic-text shadow-islamic group">
-                    <Users className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                    سجل معنا الآن
-                    <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link href="tel:+966555555555">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group">
-                    <Phone className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-                    تعرف على المزايا
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+
       </main>
 
       <Footer />

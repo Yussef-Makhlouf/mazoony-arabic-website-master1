@@ -68,6 +68,8 @@ export type City = {
 export type Review = {
   _id: string
   sheikhId: string
+  sheikhName?: string
+  sheikhImage?: string
   name: string
   phone: string
   email?: string

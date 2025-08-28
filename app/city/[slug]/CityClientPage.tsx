@@ -7,36 +7,81 @@ import { MapPin, ArrowRight, Search, Users, Award, Star, Filter, Phone, MessageC
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { SheikhCard } from "@/components/sheikh-card"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { NavBar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-
-import { cities, getSheikhsByCity } from "@/lib/data"
+import { cityAPI, sheikhAPI } from "@/lib/api"
 import { ClientPageProps } from "@/lib/types"
-
-// Get sheikhs data dynamically
-const getSheikhsForCity = (citySlug: string) => {
-  return getSheikhsByCity(citySlug)
-}
 
 export default function CityClientPage({ params }: ClientPageProps) {
   const { slug } = params
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedFilter, setSelectedFilter] = useState("all")
+  const [city, setCity] = useState<any>(null)
+  const [sheikhs, setSheikhs] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Find the city
-  const city = cities.find((c) => c.slug === slug)
-  if (!city) {
-    notFound()
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        
+        // Fetch city data
+        const cityData = await cityAPI.getBySlug(slug)
+        if (!cityData) {
+          notFound()
+        }
+        setCity(cityData)
+
+        // Fetch sheikhs for this city
+        const sheikhsData = await sheikhAPI.getByCity(slug)
+        setSheikhs(sheikhsData)
+        
+      } catch (err) {
+        console.error('Error fetching city data:', err)
+        setError('حدث خطأ في تحميل البيانات')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+        <NavBar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">جاري تحميل بيانات المدينة...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
-  // Get sheikhs for this city
-  const citySheikhsData = getSheikhsForCity(slug)
+  if (error || !city) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+        <NavBar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <p className="text-red-600">{error || 'المدينة غير موجودة'}</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
 
-  const filteredSheikhs = citySheikhsData.filter((sheikh) => {
+  const filteredSheikhs = sheikhs.filter((sheikh) => {
     const matchesSearch =
       sheikh.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      sheikh.specialties.some((s) => s.includes(searchTerm))
+      sheikh.specialties?.some((s: string) => s.includes(searchTerm))
 
     const matchesFilter =
       selectedFilter === "all" ||
@@ -74,7 +119,7 @@ export default function CityClientPage({ params }: ClientPageProps) {
             <div className="flex items-center justify-center gap-8 text-sm">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-primary" />
-                <span className="arabic-text">{citySheikhsData.length} مأذون متاح</span>
+                <span className="arabic-text">{sheikhs.length} مأذون متاح</span>
               </div>
               <div className="flex items-center gap-2">
                 <Award className="h-5 w-5 text-secondary" />
@@ -86,7 +131,7 @@ export default function CityClientPage({ params }: ClientPageProps) {
       </header>
 
       <main className="container mx-auto px-4 py-12">
-        {citySheikhsData.length > 0 ? (
+        {sheikhs.length > 0 ? (
           <>
             <section className="mb-12">
               <div className="max-w-4xl mx-auto">
@@ -205,7 +250,7 @@ export default function CityClientPage({ params }: ClientPageProps) {
           </div>
         )}
 
-        {citySheikhsData.length > 0 && (
+        {sheikhs.length > 0 && (
           <section className="mt-20">
             <Card className="relative overflow-hidden shadow-islamic border-0">
               <div className="absolute inset-0 gradient-islamic opacity-5"></div>

@@ -133,7 +133,10 @@ export default function AdminSettings() {
               <Label htmlFor="contactPhone">رقم الهاتف</Label>
               <Input 
                 id="contactPhone" 
-                value={settings.contactPhone} 
+                value={settings.contactPhone}
+                inputMode="tel"
+                autoComplete="tel"
+                dir="ltr"
                 onChange={(e) => handleSettingChange('contactPhone', e.target.value)}
                 placeholder="+966501234567"
               />
@@ -142,7 +145,10 @@ export default function AdminSettings() {
               <Label htmlFor="whatsappNumber">رقم الواتساب (دولي بدون +)</Label>
               <Input 
                 id="whatsappNumber" 
-                value={settings.whatsappNumber} 
+                value={settings.whatsappNumber}
+                inputMode="numeric"
+                autoComplete="tel-national"
+                dir="ltr"
                 onChange={(e) => handleSettingChange('whatsappNumber', e.target.value)}
                 placeholder="966501234567"
               />

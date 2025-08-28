@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import { DeleteModal } from "@/components/ui/delete-modal"
-import { reviewsAPI, adminAPI } from "@/lib/api"
+import { reviewsAPI, adminAPI, sheikhAPI } from "@/lib/api"
 import { 
   Star, 
   Search, 
@@ -51,7 +51,29 @@ export default function AdminReviews() {
     const fetchReviews = async () => {
       try {
         const pendingReviews = await reviewsAPI.getAll()
-        setReviews(pendingReviews)
+        // Enrich with sheikh details if missing name or image
+        const needsEnrichment = pendingReviews.filter(r => (!r.sheikhName || !r.sheikhImage) && (r.sheikhSlug || r.sheikhId))
+        if (needsEnrichment.length > 0) {
+          const enrichedMap: Record<string, { name?: string; image?: string; slug?: string }> = {}
+          await Promise.all(needsEnrichment.map(async (r) => {
+            try {
+              const slug = r.sheikhSlug
+              if (slug) {
+                const s = await sheikhAPI.getBySlug(slug)
+                if (s) {
+                  enrichedMap[r._id] = { name: s.name, image: s.image, slug: s.slug }
+                }
+              }
+            } catch {}
+          }))
+          const merged = pendingReviews.map(r => {
+            const extra = enrichedMap[r._id]
+            return extra ? { ...r, sheikhName: r.sheikhName || extra.name, sheikhImage: r.sheikhImage || extra.image, sheikhSlug: r.sheikhSlug || extra.slug } : r
+          })
+          setReviews(merged)
+        } else {
+          setReviews(pendingReviews)
+        }
       } catch (error) {
         console.error('Error fetching reviews:', error)
         toast.error("فشل في جلب التقييمات")
@@ -311,57 +333,80 @@ export default function AdminReviews() {
           <Card key={review._id} className="shadow-islamic border-0 bg-card/50 backdrop-blur-sm hover-lift">
             <CardHeader>
               <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="arabic-heading font-semibold text-foreground text-lg">{review.name}</h3>
-                    {getStatusBadge(review.status)}
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <UserCheck className="h-4 w-4 text-muted-foreground" />
-                    <span className="arabic-text text-sm text-muted-foreground">التقييم لـ:</span>
-                    {review.sheikhSlug ? (
-                      <a 
-                        href={`/sheikh/${review.sheikhSlug}`}
-                        className="arabic-text font-medium text-primary hover:underline"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {review.sheikhName || 'غير محدد'}
-                      </a>
-                    ) : (
-                      <span className="arabic-text font-medium text-primary">{review.sheikhName || 'غير محدد'}</span>
-                    )}
-                  </div>
-                  {review.sheikhImage && (
-                    <div className="mb-2">
-                      <img src={review.sheikhImage} alt={review.sheikhName} className="w-12 h-12 rounded-full object-cover border" />
+                <div className="flex items-start gap-4">
+                  {/* Sheikh Image */}
+                  {review.sheikhImage ? (
+                    <div className="flex-shrink-0">
+                      <img 
+                        src={review.sheikhImage} 
+                        alt={review.sheikhName || 'الشيخ'} 
+                        className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-sm"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex-shrink-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-primary/20 rounded-full flex items-center justify-center border-2 border-primary/20">
+                      <User className="w-8 h-8 text-primary/60" />
                     </div>
                   )}
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-2">
-                    <div className="flex items-center gap-1">
-                      <Phone className="h-4 w-4" />
-                      <span>{review.phone}</span>
+                  
+                  {/* Review Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="arabic-heading font-semibold text-foreground text-lg">{review.name}</h3>
+                      {getStatusBadge(review.status)}
                     </div>
-                    {review.email && (
+                    
+                    {/* Sheikh Info */}
+                    <div className="flex items-center gap-2 mb-3 p-2 bg-primary/5 rounded-lg border border-primary/10">
+                      <UserCheck className="h-4 w-4 text-primary" />
+                      <span className="arabic-text text-sm text-muted-foreground">تقييم للشيخ:</span>
+                      {review.sheikhSlug ? (
+                        <a 
+                          href={`/sheikh/${review.sheikhSlug}`}
+                          className="arabic-text font-medium text-primary hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {review.sheikhName || 'غير محدد'}
+                        </a>
+                      ) : (
+                        <span className="arabic-text font-medium text-foreground">
+                          {review.sheikhName || 'غير محدد'}
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Contact Info */}
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
                       <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" />
-                        <span>{review.email}</span>
+                        <Phone className="h-4 w-4" />
+                        <span>{review.phone}</span>
                       </div>
-                    )}
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>{new Date(review.createdAt).toLocaleDateString('ar-SA')}</span>
+                      {review.email && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-4 w-4" />
+                          <span>{review.email}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(review.createdAt).toLocaleDateString('ar-SA')}</span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {renderStars(review.rating)}
+                    
+                    {/* Rating */}
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
+                        {renderStars(review.rating)}
+                      </div>
+                      <span className="arabic-text text-sm font-medium text-foreground">
+                        {review.rating}/5
+                      </span>
                     </div>
-                    <span className="arabic-text text-sm text-muted-foreground">
-                      {review.rating}/5
-                    </span>
                   </div>
                 </div>
+                
+                {/* Action Buttons */}
                 <div className="flex items-center gap-2">
                   {review.status === "pending" && (
                     <>
@@ -372,7 +417,7 @@ export default function AdminReviews() {
                           setActionDialog({ isOpen: true, action: "approve", reviewId: review._id })
                           setSelectedReview(review)
                         }}
-                        className="text-green-600 hover:text-green-700"
+                        className="text-green-600 hover:text-green-700 hover:bg-green-50"
                       >
                         <ThumbsUp className="h-4 w-4 ml-1" />
                         موافقة
@@ -384,7 +429,7 @@ export default function AdminReviews() {
                           setActionDialog({ isOpen: true, action: "reject", reviewId: review._id })
                           setSelectedReview(review)
                         }}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <ThumbsDown className="h-4 w-4 ml-1" />
                         رفض
@@ -399,6 +444,7 @@ export default function AdminReviews() {
                       reviewId: review._id,
                       reviewerName: review.name
                     })}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4 ml-1" />
                   </Button>

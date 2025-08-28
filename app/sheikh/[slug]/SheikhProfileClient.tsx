@@ -32,20 +32,19 @@ import {
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { NavBar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { ReviewForm } from "@/components/review-form"
 import { ReviewsDisplay } from "@/components/reviews-display"
-
-import { getAllSheikhs } from "@/lib/data"
+import { sheikhAPI } from "@/lib/api"
 import { ClientPageProps } from "@/lib/types"
-
-// Get all sheikhs from central data
-const allSheikhs = getAllSheikhs()
 
 export default function SheikhProfileClient({ params }: ClientPageProps) {
   const { slug } = params
+  const [sheikh, setSheikh] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -53,10 +52,53 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
     message: "",
   })
 
-  // Find the sheikh
-  const sheikh = allSheikhs.find((s) => s.slug === slug)
-  if (!sheikh) {
-    notFound()
+  useEffect(() => {
+    const fetchSheikh = async () => {
+      try {
+        setLoading(true)
+        const sheikhData = await sheikhAPI.getBySlug(slug)
+        if (!sheikhData) {
+          notFound()
+        }
+        setSheikh(sheikhData)
+      } catch (err) {
+        console.error('Error fetching sheikh data:', err)
+        setError('حدث خطأ في تحميل بيانات المأذون')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchSheikh()
+  }, [slug])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+        <NavBar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-emerald-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">جاري تحميل بيانات المأذون...</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
+  }
+
+  if (error || !sheikh) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+        <NavBar />
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center">
+            <p className="text-red-600">{error || 'المأذون غير موجود'}</p>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -183,7 +225,7 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
                   <div>
                     <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">التخصصات</h3>
                     <div className="flex flex-wrap gap-2">
-                      {sheikh.specialties.map((specialty, index) => (
+                      {sheikh.specialties.map((specialty: string, index: number) => (
                         <Badge key={index} variant="secondary" className="arabic-text">
                           {specialty}
                         </Badge>
@@ -210,7 +252,7 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
                   <div>
                     <h3 className="arabic-heading font-semibold text-foreground text-lg mb-3">اللغات</h3>
                     <div className="flex flex-wrap gap-2">
-                      {sheikh.languages.map((language, index) => (
+                      {sheikh.languages.map((language: string, index: number) => (
                         <Badge key={index} variant="outline" className="arabic-text">
                           <Languages className="w-3 h-3 ml-1" />
                           {language}
@@ -281,6 +323,7 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
                     <ReviewForm 
                       sheikhId={sheikh.id} 
                       sheikhName={sheikh.name}
+                      sheikhImage={sheikh.image}
                       onSuccess={handleReviewSuccess}
                     />
                   </TabsContent>

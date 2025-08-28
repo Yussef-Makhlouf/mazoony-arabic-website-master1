@@ -3,6 +3,9 @@ import { cityAPI } from "@/lib/api"
 import { notFound } from "next/navigation"
 import { PageProps } from "@/lib/types"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 export default async function CityPage({ params }: PageProps) {
   const { slug } = await params
   
@@ -17,18 +20,5 @@ export default async function CityPage({ params }: PageProps) {
   } catch (error) {
     console.error('Error loading city page:', error)
     throw error // This will trigger the error boundary
-  }
-}
-
-// Generate static params for all cities
-export async function generateStaticParams() {
-  try {
-    const cities = await cityAPI.getAll()
-    return cities.map((city) => ({
-      slug: city.slug,
-    }))
-  } catch (error) {
-    console.error("Error generating static params for cities:", error)
-    return []
   }
 }
