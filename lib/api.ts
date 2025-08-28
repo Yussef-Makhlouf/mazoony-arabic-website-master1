@@ -1,6 +1,6 @@
 // API utility functions for fetching data from our APIs
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api' || `https://mazoony-arabic-website-master1.vercel.app/api`
 
 // Generic fetch function with error handling
 async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
