@@ -24,6 +24,9 @@ export function ReviewForm({ sheikhId, sheikhName, sheikhImage, onSuccess }: Rev
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hoveredRating, setHoveredRating] = useState(0)
 
+  // Debug logging for props
+  console.log("🔍 ReviewForm props:", { sheikhId, sheikhName, sheikhImage })
+
   const form = useForm<ReviewFormData>({
     resolver: zodResolver(reviewFormSchema),
     defaultValues: {
@@ -41,12 +44,33 @@ export function ReviewForm({ sheikhId, sheikhName, sheikhImage, onSuccess }: Rev
   const currentRating = form.watch("rating")
 
   const onSubmit = async (data: ReviewFormData) => {
-    console.log("🔄 Starting review submission...", data)
+    console.log("🔄 Starting review submission...")
+    console.log("📋 Form data:", data)
+    console.log("🆔 SheikhId from props:", sheikhId)
+    console.log("🆔 SheikhId in form data:", data.sheikhId)
+    
+    // Ensure sheikhId is included in the submission data
+    const submissionData = {
+      ...data,
+      sheikhId: sheikhId, // Force use the prop value
+      sheikhName: sheikhName,
+      sheikhImage: sheikhImage || ""
+    }
+    
+    console.log("📤 Final submission data:", submissionData)
+    
+    // Manual validation check
+    if (!submissionData.sheikhId || submissionData.sheikhId.trim() === '') {
+      console.error("❌ SheikhId is missing or empty!")
+      alert("خطأ: معرف المأذون مفقود. يرجى إعادة تحميل الصفحة والمحاولة مرة أخرى.")
+      return
+    }
+    
     setIsSubmitting(true)
     
     try {
-      console.log("📤 Sending review data to API:", data)
-      const result = await reviewsAPI.create(data)
+      console.log("📤 Sending review data to API:", submissionData)
+      const result = await reviewsAPI.create(submissionData)
       console.log("✅ Review submitted successfully:", result)
       
       toast.success("تم إرسال تقييمك بنجاح!", {

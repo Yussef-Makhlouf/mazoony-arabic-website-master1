@@ -317,11 +317,11 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
                     <TabsTrigger value="add-review" className="arabic-text">أضف تقييمك</TabsTrigger>
                   </TabsList>
                   <TabsContent value="approved" className="mt-6">
-                    <ReviewsDisplay sheikhId={sheikh.id} />
+                    <ReviewsDisplay sheikhId={sheikh._id} />
                   </TabsContent>
                   <TabsContent value="add-review" className="mt-6">
                     <ReviewForm 
-                      sheikhId={sheikh.id} 
+                      sheikhId={sheikh._id} 
                       sheikhName={sheikh.name}
                       sheikhImage={sheikh.image}
                       onSuccess={handleReviewSuccess}
