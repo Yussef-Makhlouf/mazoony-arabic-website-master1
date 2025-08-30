@@ -17,7 +17,8 @@ export async function middleware(request: NextRequest) {
     '/api/auth/logout',
     '/api/auth/forgot-password',
     '/api/auth/reset-password',
-    '/api/auth/verify-reset-token'
+    '/api/auth/verify-reset-token',
+    '/api/auth/verify-reset-code'
   ];
 
   const publicAuthPages = [
@@ -26,7 +27,8 @@ export async function middleware(request: NextRequest) {
     '/admin/reset-password',
     '/login',
     '/forgot-password',
-    '/reset-password'
+    '/reset-password',
+    '/verify-reset-code'
   ];
 
   const { pathname } = request.nextUrl;

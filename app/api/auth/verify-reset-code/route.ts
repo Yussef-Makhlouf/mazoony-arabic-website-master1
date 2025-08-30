@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
-import { MockAuthService } from '@/lib/mock-auth';
 import { z } from 'zod';
 
 const verifyCodeSchema = z.object({
-  code: z.string().min(4, 'رمز الاستعادة يجب أن يكون على الأقل 4 أحرف'),
+  code: z.string().min(6, 'رمز الاستعادة يجب أن يكون مكون من 6 أرقام').max(6, 'رمز الاستعادة يجب أن يكون مكون من 6 أرقام'),
   email: z.string().email('البريد الإلكتروني غير صحيح').optional()
 });
 
@@ -26,27 +25,17 @@ export async function POST(request: NextRequest) {
 
     const { code, email } = validationResult.data;
 
-    // Verify reset code - try real service first, fallback to mock
-    let user: any;
-    let token: string;
-    
-    try {
-      // Check if the code exists in our system
-      const result = await AuthService.verifyResetCode(code, email);
-      user = result.user;
-      token = result.token;
-    } catch (dbError) {
-      console.log('🔄 Database not available, using mock service for testing...');
-      const result = await MockAuthService.verifyResetCode(code, email);
-      user = result.user;
-      token = result.token;
-    }
+    // Verify reset code using real AuthService only
+    const result = await AuthService.verifyResetCode(code, email);
+    const user = result.user;
+    const token = result.token;
 
     return NextResponse.json({
       message: 'رمز الاستعادة صحيح',
       valid: true,
       userEmail: user.email.replace(/(.{2})(.*)(@.*)/, '$1***$3'), // Mask email for security
-      token: token // This will be used for the actual password reset
+      token: token, // This will be used for the actual password reset
+      success: true
     });
 
   } catch (error: any) {

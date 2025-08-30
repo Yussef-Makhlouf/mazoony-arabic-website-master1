@@ -39,7 +39,7 @@ export interface User {
 
 export interface PasswordResetToken {
   _id?: string;
-  userId: string;
+  userId: string | ObjectId;
   token: string;
   code?: string; // Short reset code
   expiresAt: Date;
@@ -145,13 +145,40 @@ export class AuthService {
   static async getUserByEmail(email: string): Promise<User | null> {
     const db = await getDatabase();
     const user = await db.collection('users').findOne({ email, isActive: true });
+    if (user) {
+      // Ensure _id is always a string in the returned object
+      user._id = user._id.toString();
+    }
     return user as User | null;
   }
 
   // Get user by ID
-  static async getUserById(id: string): Promise<User | null> {
+  static async getUserById(id: string | ObjectId): Promise<User | null> {
     const db = await getDatabase();
-    const user = await db.collection('users').findOne({ _id: new ObjectId(id), isActive: true });
+    let objectId: ObjectId;
+    
+    try {
+      // Handle both string and ObjectId inputs
+      if (typeof id === 'string') {
+        // Validate string format before conversion
+        if (!id || id.length !== 24 || !/^[a-f\d]{24}$/i.test(id)) {
+          console.error('Invalid ObjectId string format:', id);
+          return null;
+        }
+        objectId = new ObjectId(id);
+      } else {
+        objectId = id;
+      }
+    } catch (error) {
+      console.error('Invalid ObjectId format:', id, error);
+      return null;
+    }
+    
+    const user = await db.collection('users').findOne({ _id: objectId, isActive: true });
+    if (user) {
+      // Ensure _id is always a string in the returned object
+      user._id = user._id.toString();
+    }
     return user as User | null;
   }
 
@@ -255,7 +282,7 @@ export class AuthService {
 
     // Save reset token with code
     const resetToken: Omit<PasswordResetToken, '_id'> = {
-      userId: user._id!,
+      userId: typeof user._id === 'string' ? new ObjectId(user._id) : user._id!,
       token,
       code,
       expiresAt,
@@ -283,8 +310,16 @@ export class AuthService {
       throw new Error('رمز الاستعادة غير صحيح أو منتهي الصلاحية');
     }
 
-    // Get user
-    const user = await this.getUserById(resetToken.userId);
+    // Get user - ensure userId is properly converted
+    let userId: string;
+    try {
+      userId = resetToken.userId.toString();
+    } catch (error) {
+      console.error('Invalid userId format in reset token:', resetToken.userId);
+      throw new Error('رمز الاستعادة غير صحيح');
+    }
+    
+    const user = await this.getUserById(userId);
     if (!user) {
       throw new Error('المستخدم غير موجود');
     }
@@ -315,8 +350,16 @@ export class AuthService {
       throw new Error('رمز الاستعادة غير صحيح أو منتهي الصلاحية');
     }
 
-    // Get user
-    const user = await this.getUserById(resetToken.userId);
+    // Get user - ensure userId is properly converted
+    let userId: string;
+    try {
+      userId = resetToken.userId.toString();
+    } catch (error) {
+      console.error('Invalid userId format in reset token:', resetToken.userId);
+      throw new Error('رمز الاستعادة غير صحيح');
+    }
+    
+    const user = await this.getUserById(userId);
     if (!user) {
       throw new Error('المستخدم غير موجود');
     }
@@ -335,8 +378,15 @@ export class AuthService {
     const hashedPassword = await this.hashPassword(newPassword);
 
     // Update password
+    let userObjectId: ObjectId;
+    try {
+      userObjectId = typeof user._id === 'string' ? new ObjectId(user._id) : user._id as ObjectId;
+    } catch (error) {
+      throw new Error('معرف المستخدم غير صحيح');
+    }
+    
     await db.collection('users').updateOne(
-      { _id: new ObjectId(user._id) },
+      { _id: userObjectId },
       { 
         $set: { 
           password: hashedPassword,

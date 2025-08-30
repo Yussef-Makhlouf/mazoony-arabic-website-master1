@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Shield, AlertCircle, KeyRound, ArrowLeft } from "lucide-react"
+import { Eye, EyeOff, Shield, AlertCircle, ArrowLeft, KeyRound } from "lucide-react"
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
