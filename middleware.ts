@@ -23,7 +23,10 @@ export async function middleware(request: NextRequest) {
   const publicAuthPages = [
     '/admin/login',
     '/admin/forgot-password',
-    '/admin/reset-password'
+    '/admin/reset-password',
+    '/login',
+    '/forgot-password',
+    '/reset-password'
   ];
 
   const { pathname } = request.nextUrl;

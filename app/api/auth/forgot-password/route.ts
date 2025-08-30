@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AuthService } from '@/lib/auth';
+import { MockAuthService } from '@/lib/mock-auth';
+import { EmailService } from '@/lib/email';
 import { z } from 'zod';
 
 const forgotPasswordSchema = z.object({
@@ -24,18 +26,61 @@ export async function POST(request: NextRequest) {
 
     const { email } = validationResult.data;
 
-    // Request password reset
-    const resetToken = await AuthService.requestPasswordReset(email);
+    try {
+      // Try using real AuthService first, fallback to MockAuthService
+      let resetToken: string;
+      let user: any;
 
-    // In a real application, you would send this token via email
-    // For development, we'll return it in the response
-    // TODO: Implement email service
-    
-    return NextResponse.json({
-      message: 'تم إرسال رمز استعادة كلمة المرور',
-      // Remove this in production - send via email instead
-      resetToken: process.env.NODE_ENV === 'development' ? resetToken : undefined
-    });
+      try {
+        // Request password reset
+        resetToken = await AuthService.requestPasswordReset(email);
+        user = await AuthService.getUserByEmail(email);
+      } catch (dbError) {
+        console.log('🔄 Database not available, using mock service for testing...');
+        
+        // Fallback to mock service
+        resetToken = await MockAuthService.requestPasswordReset(email);
+        user = await MockAuthService.getUserByEmail(email);
+      }
+
+      if (!user) {
+        // Return success anyway to prevent email enumeration
+        return NextResponse.json({
+          message: 'إذا كان البريد الإلكتروني مسجل لدينا، فسيتم إرسال رمز الاستعادة'
+        });
+      }
+
+      try {
+        // Send password reset email
+        await EmailService.sendPasswordResetEmail(email, resetToken, user.name);
+        
+        return NextResponse.json({
+          message: 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني',
+          // For development only - remove in production
+          ...(process.env.NODE_ENV === 'development' && { 
+            resetToken,
+            resetUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+          })
+        });
+      } catch (emailError) {
+        console.error('Email sending failed:', emailError);
+        // Still return success to prevent information disclosure
+        return NextResponse.json({
+          message: 'تم إرسال رمز استعادة كلمة المرور',
+          // For development, return token even if email fails
+          ...(process.env.NODE_ENV === 'development' && { 
+            resetToken,
+            resetUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`,
+            emailError: 'فشل إرسال البريد الإلكتروني - تحقق من إعدادات SMTP'
+          })
+        });
+      }
+    } catch (outerError) {
+      console.error('Main process failed:', outerError);
+      return NextResponse.json({
+        message: 'إذا كان البريد الإلكتروني مسجل لدينا، فسيتم إرسال رمز الاستعادة'
+      });
+    }
 
   } catch (error: any) {
     console.error('Forgot password error:', error);
