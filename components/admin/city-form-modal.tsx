@@ -51,21 +51,8 @@ export default function CityFormModal({ isOpen, onClose, city, onSave }: CityFor
 
   if (!isOpen) return null
 
-  const saudiRegions = [
-    "منطقة الرياض",
-    "منطقة مكة المكرمة",
-    "منطقة المدينة المنورة",
-    "منطقة القصيم",
-    "المنطقة الشرقية",
-    "منطقة عسير",
-    "منطقة تبوك",
-    "منطقة حائل",
-    "منطقة الحدود الشمالية",
-    "منطقة جازان",
-    "منطقة نجران",
-    "منطقة الباحة",
-    "منطقة الجوف",
-  ]
+  // تم حذف البيانات الثابتة - المناطق يتم جلبها من قاعدة البيانات أو إدخالها يدوياً
+  const saudiRegions: string[] = []
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">

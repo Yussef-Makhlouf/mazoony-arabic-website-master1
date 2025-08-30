@@ -156,42 +156,62 @@ export default function CityClientPage({ params }: ClientPageProps) {
                         />
                       </div>
                       <div className="flex gap-2 flex-wrap">
-                        <Button
-                          variant={selectedFilter === "all" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedFilter("all")}
-                          className="arabic-text bg-transparent"
-                        >
-                          الكل
-                        </Button>
-                        <Button
-                          variant={selectedFilter === "available" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedFilter("available")}
-                          className="arabic-text bg-transparent"
-                        >
-                          <Filter className="w-4 h-4 ml-2" />
-                          متاح الآن
-                        </Button>
-                        <Button
-                          variant={selectedFilter === "verified" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedFilter("verified")}
-                          className="arabic-text bg-transparent"
-                        >
-                          <Award className="w-4 h-4 ml-2" />
-                          معتمد
-                        </Button>
-                        <Button
-                          variant={selectedFilter === "top-rated" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setSelectedFilter("top-rated")}
-                          className="arabic-text bg-transparent"
-                        >
-                          <Star className="w-4 h-4 ml-2" />
-                          الأعلى تقييماً
-                        </Button>
-                      </div>
+  {/* All */}
+  <Button
+    size="sm"
+    onClick={() => setSelectedFilter("all")}
+    className={`arabic-text transition-all duration-200 ${
+      selectedFilter === "all"
+        ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
+        : "bg-white text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 hover:shadow-md"
+    }`}
+  >
+    الكل
+  </Button>
+
+  {/* Available */}
+  <Button
+    size="sm"
+    onClick={() => setSelectedFilter("available")}
+    className={`arabic-text transition-all duration-200 flex items-center ${
+      selectedFilter === "available"
+        ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
+        : "bg-white text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 hover:shadow-md"
+    }`}
+  >
+    <Filter className="w-4 h-4 ml-2 text-current" />
+    <span>متاح الآن</span>
+  </Button>
+
+  {/* Verified */}
+  <Button
+    size="sm"
+    onClick={() => setSelectedFilter("verified")}
+    className={`arabic-text transition-all duration-200 flex items-center ${
+      selectedFilter === "verified"
+        ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
+        : "bg-white text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 hover:shadow-md"
+    }`}
+  >
+    <Award className="w-4 h-4 ml-2 text-current" />
+    <span>معتمد</span>
+  </Button>
+
+  {/* Top rated */}
+  <Button
+    size="sm"
+    onClick={() => setSelectedFilter("top-rated")}
+    className={`arabic-text transition-all duration-200 flex items-center ${
+      selectedFilter === "top-rated"
+        ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
+        : "bg-white text-green-700 border-green-200 hover:bg-green-100 hover:text-green-800 hover:shadow-md"
+    }`}
+  >
+    <Star className="w-4 h-4 ml-2 text-current" />
+    <span>الأعلى تقييماً</span>
+  </Button>
+</div>
+
                     </div>
                   </CardContent>
                 </Card>
@@ -226,7 +246,7 @@ export default function CityClientPage({ params }: ClientPageProps) {
                         setSelectedFilter("all")
                       }}
                       variant="outline"
-                      className="arabic-text bg-transparent"
+                      className="arabic-text bg-transparent text-green-700"
                     >
                       إعادة تعيين البحث
                     </Button>
@@ -244,13 +264,13 @@ export default function CityClientPage({ params }: ClientPageProps) {
                 نعمل على إضافة المأذونين في {city.name} قريباً
               </p>
               <Link href="/">
-                <Button className="arabic-text">العودة للرئيسية</Button>
+                <Button className="arabic-text text-green-700">العودة للرئيسية</Button>
               </Link>
             </div>
           </div>
         )}
 
-        {sheikhs.length > 0 && (
+        {/* {sheikhs.length > 0 && (
           <section className="mt-20">
             <Card className="relative overflow-hidden shadow-islamic border-0">
               <div className="absolute inset-0 gradient-islamic opacity-5"></div>
@@ -268,12 +288,12 @@ export default function CityClientPage({ params }: ClientPageProps) {
               </CardHeader>
               <CardContent className="text-center relative">
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="text-lg px-8 py-6 arabic-text shadow-islamic group">
+                  <Button size="lg" className="text-lg px-8 py-6 arabic-text shadow-islamic group text-green-700">
                     <Users className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
                     سجل معنا الآن
                     <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group">
+                  <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group text-green-700">
                     <Phone className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
                     تعرف على المزايا
                   </Button>
@@ -281,7 +301,7 @@ export default function CityClientPage({ params }: ClientPageProps) {
               </CardContent>
             </Card>
           </section>
-        )}
+        )} */}
       </main>
 
       <Footer />

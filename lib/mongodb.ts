@@ -164,376 +164,35 @@ async function createIndexes(db: Db): Promise<void> {
 
 async function seedInitialData(db: Db): Promise<void> {
   try {
-    // التحقق من وجود بيانات المدن
-    const citiesCount = await db.collection('cities').countDocuments();
-    if (citiesCount === 0) {
-      console.log('📝 إدخال بيانات المدن...');
-      await seedCities(db);
-    }
-
-    // التحقق من وجود بيانات المأذونين
-    const sheikhsCount = await db.collection('sheikhs').countDocuments();
-    if (sheikhsCount === 0) {
-      console.log('📝 إدخال بيانات المأذونين...');
-      await seedSheikhs(db);
-    }
-
-    // التحقق من وجود مستخدم مدير
+    // التحقق من وجود مستخدم مدير فقط
     const adminCount = await db.collection('users').countDocuments({ role: 'admin' });
     if (adminCount === 0) {
       console.log('📝 إنشاء مستخدم مدير...');
       await createAdminUser(db);
     }
 
-    // التحقق من وجود الإعدادات
+    // التحقق من وجود الإعدادات الأساسية فقط
     const settingsCount = await db.collection('settings').countDocuments();
     if (settingsCount === 0) {
-      console.log('📝 إدخال الإعدادات الافتراضية...');
-      await seedSettings(db);
+      console.log('📝 إدخال الإعدادات الأساسية...');
+      await seedBasicSettings(db);
     }
 
-    console.log('✅ تم إدخال البيانات الأولية بنجاح');
+    console.log('✅ تم إدخال البيانات الأساسية بنجاح');
   } catch (error) {
-    console.error('❌ خطأ في إدخال البيانات الأولية:', error);
+    console.error('❌ خطأ في إدخال البيانات الأساسية:', error);
     throw error;
   }
 }
 
+// تم حذف البيانات الثابتة للمدن
 async function seedCities(db: Db): Promise<void> {
-  const cities = [
-    { 
-      name: "الرياض", 
-      slug: "al-riyadh", 
-      count: 28,
-      region: "منطقة الرياض",
-      population: "7,000,000",
-      description: "عاصمة المملكة العربية السعودية ومركزها السياسي والإداري",
-      featured: true,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "جدة", 
-      slug: "jeddah", 
-      count: 22,
-      region: "منطقة مكة المكرمة",
-      population: "4,700,000",
-      description: "العاصمة التجارية للمملكة ومدينة الحجاج",
-      featured: true,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "مكة المكرمة", 
-      slug: "makkah-al-mukarramah", 
-      count: 15,
-      region: "منطقة مكة المكرمة",
-      population: "2,400,000",
-      description: "أقدس مدن الإسلام وموطن الكعبة المشرفة",
-      featured: true,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "المدينة المنورة", 
-      slug: "al-madinah-al-munawwarah", 
-      count: 18,
-      region: "منطقة المدينة المنورة",
-      population: "1,500,000",
-      description: "مدينة النبي صلى الله عليه وسلم وموطن المسجد النبوي",
-      featured: true,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "الدمام", 
-      slug: "dammam", 
-      count: 16,
-      region: "المنطقة الشرقية",
-      population: "1,300,000",
-      description: "عاصمة المنطقة الشرقية ومركز النفط في المملكة",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "الطائف", 
-      slug: "al-taif", 
-      count: 12,
-      region: "منطقة مكة المكرمة",
-      population: "688,000",
-      description: "مدينة الورود والمناخ المعتدل في المملكة",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "تبوك", 
-      slug: "tabuk", 
-      count: 10,
-      region: "منطقة تبوك",
-      population: "594,000",
-      description: "بوابة الشمال ومدينة التاريخ والتراث",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "أبها", 
-      slug: "abha", 
-      count: 9,
-      region: "منطقة عسير",
-      population: "1,200,000",
-      description: "عاصمة منطقة عسير ومدينة الضباب والجمال",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "حائل", 
-      slug: "hail", 
-      count: 7,
-      region: "منطقة حائل",
-      population: "700,000",
-      description: "مدينة التاريخ والأدب في شمال المملكة",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "القصيم", 
-      slug: "al-qassim", 
-      count: 11,
-      region: "منطقة القصيم",
-      population: "1,400,000",
-      description: "سلة غذاء المملكة ومركز الزراعة",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "ينبع", 
-      slug: "yanbu", 
-      count: 8,
-      region: "منطقة المدينة المنورة",
-      population: "300,000",
-      description: "مدينة الصناعة والتصدير على البحر الأحمر",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    { 
-      name: "الخبر", 
-      slug: "al-khobar", 
-      count: 14,
-      region: "المنطقة الشرقية",
-      population: "1,100,000",
-      description: "مدينة الخليج والجمال في المنطقة الشرقية",
-      featured: false,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
-
-  await db.collection('cities').insertMany(cities);
-  console.log(`✅ تم إدخال ${cities.length} مدينة`);
+  console.log('ℹ️ لا توجد بيانات ثابتة للمدن - يجب إدخالها يدوياً من لوحة التحكم');
 }
 
+// تم حذف البيانات الثابتة للمأذونين
 async function seedSheikhs(db: Db): Promise<void> {
-  const sheikhs = [
-    {
-      name: "الشيخ عبدالرحمن بن سفر المالكي",
-      slug: "abdulrahman-safer-al-malki",
-      cityId: "makkah",
-      city: "مكة المكرمة",
-      citySlug: "makkah-al-mukarramah",
-      phone: "+966501234567",
-      whatsapp: "+966501234567",
-      rating: 4.8,
-      reviewCount: 127,
-      specialties: ["عقود الزواج", "الاستشارات الشرعية"],
-      experience: "15 سنة خبرة",
-      availability: "متاح",
-      bio: "مأذون شرعي معتمد بخبرة 15 عاماً في توثيق عقود الزواج والاستشارات الشرعية. حاصل على إجازة شرعية من جامعة أم القرى ومعتمد من وزارة العدل.",
-      education: "إجازة شرعية - جامعة أم القرى",
-      languages: ["العربية", "الإنجليزية"],
-      ratings: {
-        commitment: 4.9,
-        ease: 4.7,
-        knowledge: 4.8,
-        price: 4.6,
-      },
-      verified: true,
-      isActive: true,
-      price: "400",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      name: "الشيخ محمد بن عناد الشربط",
-      slug: "mohammed-enaad-al-sharbat",
-      cityId: "makkah",
-      city: "مكة المكرمة",
-      citySlug: "makkah-al-mukarramah",
-      phone: "+966502345678",
-      whatsapp: "+966502345678",
-      rating: 4.9,
-      reviewCount: 89,
-      specialties: ["توثيق العقود", "الإرشاد الأسري"],
-      experience: "12 سنة خبرة",
-      availability: "متاح",
-      bio: "مأذون شرعي متخصص في توثيق العقود والإرشاد الأسري. يتميز بالدقة في العمل والالتزام بالمواعيد.",
-      education: "ماجستير في الشريعة الإسلامية",
-      languages: ["العربية"],
-      ratings: {
-        commitment: 5.0,
-        ease: 4.8,
-        knowledge: 4.9,
-        price: 4.7,
-      },
-      verified: true,
-      isActive: true,
-      price: "350",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      name: "الشيخ أحمد بن علي الحارثي",
-      slug: "ahmed-ali-al-harthi",
-      cityId: "makkah",
-      city: "مكة المكرمة",
-      citySlug: "makkah-al-mukarramah",
-      phone: "+966503456789",
-      whatsapp: "+966503456789",
-      rating: 4.7,
-      reviewCount: 156,
-      specialties: ["عقود الزواج", "التوثيق الشرعي"],
-      experience: "20 سنة خبرة",
-      availability: "مشغول",
-      bio: "مأذون شرعي معتمد بخبرة 20 عاماً في توثيق عقود الزواج والتوثيق الشرعي. يتميز بالخبرة الواسعة والدقة في العمل.",
-      education: "دكتوراه في الفقه الإسلامي - جامعة أم القرى",
-      languages: ["العربية", "الإنجليزية", "الأردية"],
-      ratings: {
-        commitment: 4.8,
-        ease: 4.6,
-        knowledge: 4.9,
-        price: 4.5,
-      },
-      verified: true,
-      isActive: true,
-      price: "500",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: "sheikh-4",
-      name: "الشيخ خالد بن سعد العتيبي",
-      slug: "khalid-saad-al-otaibi",
-      cityId: "riyadh",
-      city: "الرياض",
-      citySlug: "al-riyadh",
-      phone: "+966504567890",
-      whatsapp: "+966504567890",
-      rating: 4.9,
-      reviewCount: 203,
-      specialties: ["عقود الزواج", "الاستشارات الشرعية"],
-      experience: "18 سنة خبرة",
-      availability: "متاح",
-      bio: "مأذون شرعي معتمد في الرياض بخبرة تزيد عن 18 عاماً. متخصص في عقود الزواج والاستشارات الشرعية.",
-      education: "دكتوراه في الفقه الإسلامي",
-      languages: ["العربية", "الإنجليزية", "الأردية"],
-      ratings: {
-        commitment: 4.8,
-        ease: 4.9,
-        knowledge: 5.0,
-        price: 4.7,
-      },
-      verified: true,
-      isActive: true,
-      price: "450",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: "sheikh-5",
-      name: "الشيخ عبدالله بن محمد الدوسري",
-      slug: "abdullah-mohammed-al-dosari",
-      cityId: "riyadh",
-      city: "الرياض",
-      citySlug: "al-riyadh",
-      phone: "+966505678901",
-      whatsapp: "+966505678901",
-      rating: 4.8,
-      reviewCount: 174,
-      specialties: ["توثيق العقود", "الإرشاد الأسري"],
-      experience: "14 سنة خبرة",
-      availability: "متاح",
-      bio: "مأذون شرعي معتمد في الرياض بخبرة 14 عاماً في توثيق العقود والإرشاد الأسري. يتميز بالسرعة في الإنجاز والتعامل الراقي مع العملاء.",
-      education: "بكالوريوس في الشريعة الإسلامية - جامعة الإمام محمد بن سعود",
-      languages: ["العربية", "الإنجليزية"],
-      ratings: {
-        commitment: 4.9,
-        ease: 4.8,
-        knowledge: 4.7,
-        price: 4.8,
-      },
-      verified: true,
-      isActive: true,
-      price: "400",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      _id: "sheikh-6",
-      name: "الشيخ فهد بن عبدالعزيز القحطاني",
-      slug: "fahd-abdulaziz-al-qahtani",
-      cityId: "jeddah",
-      city: "جدة",
-      citySlug: "jeddah",
-      phone: "+966506789012",
-      whatsapp: "+966506789012",
-      rating: 4.7,
-      reviewCount: 98,
-      specialties: ["عقود الزواج", "التوثيق الشرعي"],
-      experience: "16 سنة خبرة",
-      availability: "متاح",
-      bio: "مأذون شرعي معتمد في جدة بخبرة 16 عاماً في توثيق عقود الزواج والتوثيق الشرعي. يتميز بالدقة والسرعة في العمل.",
-      education: "ماجستير في الشريعة الإسلامية - جامعة الملك عبدالعزيز",
-      languages: ["العربية", "الإنجليزية"],
-      ratings: {
-        commitment: 4.8,
-        ease: 4.7,
-        knowledge: 4.6,
-        price: 4.8,
-      },
-      verified: true,
-      isActive: true,
-      price: "380",
-      image: "/professional-arabic-sheikh-portrait.png",
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
-
-  await db.collection('sheikhs').insertMany(sheikhs);
-  console.log(`✅ تم إدخال ${sheikhs.length} مأذون`);
+  console.log('ℹ️ لا توجد بيانات ثابتة للمأذونين - يجب إدخالها يدوياً من لوحة التحكم');
 }
 
 async function createAdminUser(db: Db): Promise<void> {
@@ -568,7 +227,7 @@ async function createAdminUser(db: Db): Promise<void> {
   console.log('✅ تم إنشاء مستخدم مدير');
 }
 
-async function seedSettings(db: Db): Promise<void> {
+async function seedBasicSettings(db: Db): Promise<void> {
   const settings = [
     {
       key: "require_verification",

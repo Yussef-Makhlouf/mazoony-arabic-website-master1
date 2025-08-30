@@ -23,17 +23,22 @@ export type ApiResponse<T = any> = {
 // Sheikh Types
 export type Sheikh = {
   _id: string
+  id?: string
   name: string
   slug: string
   city: string
   citySlug: string
+  specialization?: string
   specialties: string[]
   rating: number
   reviewCount: number
   experience: number
-  availability: string
+  availability: "متاح" | "مشغول" | "غير متاح"
+  isAvailable?: boolean
+  isCertified?: boolean
   verified: boolean
   phone: string
+  whatsapp?: string
   address: string
   bio: string
   image?: string
@@ -60,6 +65,7 @@ export type City = {
   description: string
   image?: string
   sheikhCount: number
+  count?: number
   createdAt: Date
   updatedAt: Date
 }

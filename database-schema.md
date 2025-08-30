@@ -390,100 +390,14 @@ db.statistics.createIndex({ "date": 1 })
 db.statistics.createIndex({ "type": 1 })
 db.statistics.createIndex({ "createdAt": -1 })
 
-// إنشاء مستخدم مدير افتراضي
-db.users.insertOne({
-  name: "مدير النظام",
-  email: "admin@mazoony.com",
-  password: "$2b$10$hashed_password_here", // يجب تشفير كلمة المرور
-  role: "admin",
-  permissions: ["all"],
-  isActive: true,
-  profile: {
-    avatar: "",
-    phone: "",
-    department: "الإدارة العامة"
-  },
-  settings: {
-    notifications: {
-      email: true,
-      sms: false,
-      push: true
-    },
-    language: "ar",
-    timezone: "Asia/Riyadh"
-  },
-  createdAt: new Date(),
-  updatedAt: new Date()
-})
+// ملاحظة: تم حذف جميع البيانات الثابتة
+// يجب إدخال البيانات يدوياً من لوحة التحكم أو عبر APIs
 
-// إنشاء الإعدادات الافتراضية
-const defaultSettings = [
-  {
-    key: "site_name",
-    value: "مأذوني",
-    type: "string",
-    category: "general",
-    description: "اسم الموقع",
-    isPublic: true,
-    updatedAt: new Date()
-  },
-  {
-    key: "site_description",
-    value: "الموقع الأول للمأذونين الشرعيين في المملكة العربية السعودية",
-    type: "string",
-    category: "general",
-    description: "وصف الموقع",
-    isPublic: true,
-    updatedAt: new Date()
-  },
-  {
-    key: "contact_email",
-    value: "info@mazoony.com",
-    type: "string",
-    category: "contact",
-    description: "البريد الإلكتروني للتواصل",
-    isPublic: true,
-    updatedAt: new Date()
-  },
-  {
-    key: "contact_phone",
-    value: "+966501234567",
-    type: "string",
-    category: "contact",
-    description: "رقم الهاتف للتواصل",
-    isPublic: true,
-    updatedAt: new Date()
-  },
-  {
-    key: "require_verification",
-    value: true,
-    type: "boolean",
-    category: "security",
-    description: "التحقق من المأذونين",
-    isPublic: false,
-    updatedAt: new Date()
-  },
-  {
-    key: "auto_approve_reviews",
-    value: false,
-    type: "boolean",
-    category: "reviews",
-    description: "الموافقة التلقائية على التقييمات",
-    isPublic: false,
-    updatedAt: new Date()
-  },
-  {
-    key: "max_login_attempts",
-    value: 5,
-    type: "number",
-    category: "security",
-    description: "الحد الأقصى لمحاولات تسجيل الدخول",
-    isPublic: false,
-    updatedAt: new Date()
-  }
-]
+// إنشاء مستخدم مدير أساسي فقط (بدون بيانات ثابتة)
+// db.users.insertOne({ ... })
 
-db.settings.insertMany(defaultSettings)
+// إنشاء إعدادات أساسية فقط (بدون بيانات ثابتة)
+// db.settings.insertMany([ ... ])
 ```
 
 ## 📈 العلاقات بين المجموعات

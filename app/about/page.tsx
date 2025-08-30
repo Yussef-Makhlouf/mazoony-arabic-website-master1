@@ -60,6 +60,10 @@ export default function AboutPage() {
       
       {/* Header Section */}
       <header className="relative overflow-hidden bg-card border-b border-border">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor2.jpg')" }}
+      ></div>
         <div className="absolute inset-0 islamic-pattern opacity-5"></div>
         <div className="relative container mx-auto px-4 py-16">
           <div className="text-center">
@@ -180,41 +184,8 @@ export default function AboutPage() {
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section>
-          <Card className="relative overflow-hidden shadow-islamic border-0">
-            <div className="absolute inset-0 gradient-islamic opacity-5"></div>
-            <div className="absolute inset-0 islamic-pattern opacity-10"></div>
-            <CardHeader className="text-center relative">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-6">
-                <MessageCircle className="h-8 w-8 text-primary" />
-              </div>
-              <CardTitle className="text-3xl arabic-heading text-foreground mb-4">
-                تواصل معنا
-              </CardTitle>
-              <CardDescription className="text-xl arabic-text text-muted-foreground max-w-2xl mx-auto">
-                نحن هنا لمساعدتك في جميع استفساراتك وطلباتك
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center relative">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="text-lg px-8 py-6 arabic-text shadow-islamic group" asChild>
-                  <Link href="/contact">
-                    <Phone className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-                    تواصل معنا الآن
-                    <ArrowRight className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-6 arabic-text bg-transparent group" asChild>
-                  <a href="/api/settings" data-dynamic-wa target="_blank" rel="noopener noreferrer">
-                    <MessageCircle className="w-5 h-5 ml-2 group-hover:scale-110 transition-transform" />
-                    واتساب مباشر
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+
+ 
       </main>
 
       <Footer />

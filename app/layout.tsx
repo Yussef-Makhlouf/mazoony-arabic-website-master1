@@ -17,6 +17,11 @@ export const metadata: Metadata = {
     locale: "ar_SA",
     type: "website",
   },
+  robots: {
+    index: true,
+    follow: true,
+  },
+  
 }
 
 const theYearOfHandicrafts = localFont({
@@ -39,7 +44,8 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" className="rtl">
       <body
-        className={`font-sans arabic-text ${GeistSans.variable} ${GeistMono.variable} ${theYearOfHandicrafts.variable} ${theYearOfHandicraftsSerif.variable}`}
+        className={`font-sans arabic-text antialiased ${GeistSans.variable} ${GeistMono.variable} ${theYearOfHandicrafts.variable} ${theYearOfHandicraftsSerif.variable}`}
+        style={{ fontFamily: 'TheYearofHandicrafts, var(--font-arabic), system-ui, sans-serif' }}
       >
         {children}
         <Toaster />

@@ -169,6 +169,14 @@ export default function EditSheikh() {
     }
   }
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onloadend = () => setImagePreview(reader.result as string)
+    reader.readAsDataURL(file)
+  }
+
   const addSpecialty = () => {
     if (newSpecialty.trim() && !formData.specialties.includes(newSpecialty.trim())) {
       setFormData(prev => ({
@@ -337,6 +345,25 @@ export default function EditSheikh() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Image Upload - Top Circular Avatar */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative">
+              <div className="w-32 h-32 rounded-full overflow-hidden border border-border shadow-md bg-muted">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="معاينة الصورة" className="w-full h-full object-cover" />
+                ) : (
+                  <img src="/placeholder-user.jpg" alt="صورة افتراضية" className="w-full h-full object-cover" />
+                )}
+              </div>
+              <label htmlFor="image" className="absolute -bottom-2 -right-2 cursor-pointer">
+                <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg border border-primary/20">
+                  +
+                </div>
+              </label>
+              <input id="image" type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            </div>
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Basic Information */}
             <div className="grid gap-6 md:grid-cols-2">
@@ -419,26 +446,7 @@ export default function EditSheikh() {
                   placeholder="مثال: 500 ريال"
                 />
               </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="image">صورة المأذون</Label>
-                <input
-                  id="image"
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (!file) return
-                    const reader = new FileReader()
-                    reader.onloadend = () => setImagePreview(reader.result as string)
-                    reader.readAsDataURL(file)
-                  }}
-                />
-                {imagePreview && (
-                  <div className="mt-2">
-                    <img src={imagePreview} alt="معاينة الصورة" className="w-32 h-32 object-cover rounded-lg border" />
-                  </div>
-                )}
-              </div>
+
             </div>
 
             {/* Specialties */}

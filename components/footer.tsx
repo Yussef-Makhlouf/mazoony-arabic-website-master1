@@ -46,14 +46,8 @@ export function Footer() {
     { name: "تواصل معنا", href: "/contact" },
   ]
 
-  const cities = [
-    { name: "الرياض", href: "/city/riyadh" },
-    { name: "جدة", href: "/city/jeddah" },
-    { name: "مكة المكرمة", href: "/city/makkah" },
-    { name: "المدينة المنورة", href: "/city/madinah" },
-    { name: "الدمام", href: "/city/dammam" },
-    { name: "الطائف", href: "/city/taif" },
-  ]
+  // تم حذف البيانات الثابتة - المدن يتم جلبها من قاعدة البيانات
+  const cities: { name: string; href: string }[] = []
 
   const services = [
     { name: "توثيق عقود الزواج", description: "خدمة توثيق العقود الشرعية" },
@@ -75,7 +69,10 @@ export function Footer() {
       <div className="absolute inset-0 islamic-pattern opacity-5"></div>
       <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl"></div>
-
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor2.jpg')" }}
+      ></div>
       <div className="relative container mx-auto px-4 py-16">
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">

@@ -158,16 +158,33 @@
   }
 
   .arabic-text {
-    font-family: 'TheYearofHandicrafts', var(--font-arabic), system-ui, sans-serif;
-    line-height: 1.7;
+    font-family: 'TheYearofHandicrafts', var(--font-arabic), 'Noto Sans Arabic', 'Cairo', 'Amiri', system-ui, sans-serif;
+    line-height: 1.8;
     letter-spacing: 0.01em;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
 
   .arabic-heading {
-    font-family: 'TheYearofHandicrafts', var(--font-arabic-serif), system-ui, sans-serif;
+    font-family: 'TheYearofHandicrafts', var(--font-arabic-serif), 'Noto Sans Arabic', 'Cairo', 'Amiri', system-ui, sans-serif;
     font-weight: 700;
-    line-height: 1.4;
+    line-height: 1.5;
     letter-spacing: 0.02em;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  }
+
+  /* تطبيق الخط على كامل الجسم */
+  body {
+    font-family: 'TheYearofHandicrafts', var(--font-arabic), 'Noto Sans Arabic', 'Cairo', 'Amiri', system-ui, sans-serif;
+  }
+
+  /* تطبيق الخط على العناصر المختلفة */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'TheYearofHandicrafts', var(--font-arabic-serif), 'Noto Sans Arabic', 'Cairo', 'Amiri', system-ui, sans-serif;
+  }
+
+  /* تحسين عرض النص العربي */
+  .rtl * {
+    font-family: 'TheYearofHandicrafts', var(--font-arabic), 'Noto Sans Arabic', 'Cairo', 'Amiri', system-ui, sans-serif;
   }
 
   .english-text {
@@ -206,7 +223,7 @@
 
   .admin-sidebar {
     background-color: var(--admin-sidebar);
-    border-right: 1px solid var(--admin-border);
+    border-left: 1px solid var(--admin-border);
   }
 
   .admin-sidebar-item {
@@ -220,6 +237,55 @@
   .admin-sidebar-item.active {
     background-color: var(--admin-sidebar-active);
     border-right: 3px solid var(--primary);
+  }
+
+  /* تحسينات Sidebar للشاشات المختلفة */
+  .sidebar-responsive {
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+  }
+
+  /* تحسين عرض الـ sidebar على الشاشات الصغيرة */
+  @media (max-width: 640px) {
+    .admin-sidebar {
+      width: 100% !important;
+      max-width: 280px;
+    }
+  }
+
+  /* تحسين عرض الـ sidebar على التابلت */
+  @media (min-width: 641px) and (max-width: 1023px) {
+    .admin-sidebar {
+      width: 240px;
+    }
+  }
+
+  /* تحسين عرض الـ sidebar على الشاشات الكبيرة */
+  @media (min-width: 1024px) {
+    .admin-sidebar {
+      width: 256px;
+    }
+    
+    .admin-sidebar.collapsed {
+      width: 64px;
+    }
+  }
+
+  /* تحسين الرسوم المتحركة للـ sidebar */
+  .sidebar-transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* تحسين عرض الأيقونات في الوضع المطوي */
+  .sidebar-icon-only {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* تحسين عرض النص في RTL */
+  .rtl .sidebar-text {
+    text-align: right;
+    direction: rtl;
   }
 
   .admin-header {

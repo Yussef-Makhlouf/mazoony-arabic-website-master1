@@ -55,7 +55,7 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
   const removeSpecialty = (specialty: string) => {
     setFormData((prev) => ({
       ...prev,
-      specialties: prev.specialties.filter((s) => s !== specialty),
+      specialties: prev.specialties.filter((s: string) => s !== specialty),
     }))
   }
 
@@ -73,7 +73,7 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
     if (formData.languages.length > 1) {
       setFormData((prev) => ({
         ...prev,
-        languages: prev.languages.filter((l) => l !== language),
+        languages: prev.languages.filter((l: string) => l !== language),
       }))
     }
   }
@@ -278,7 +278,7 @@ export default function SheikhFormModal({ isOpen, onClose, sheikh, onSave, citie
               <div className="space-y-4">
                 <Label>اللغات</Label>
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {formData.languages.map((language, index) => (
+                  {formData.languages.map((language: string, index: number) => (
                     <Badge key={index} variant="outline" className="flex items-center gap-2">
                       {language}
                       {formData.languages.length > 1 && (

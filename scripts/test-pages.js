@@ -27,13 +27,13 @@ async function testPages() {
       expectedStatus: 200
     },
     {
-      name: 'صفحة مدينة الرياض',
-      path: '/city/al-riyadh',
+      name: 'صفحة مدينة تجريبية',
+      path: '/city/test-city',
       expectedStatus: 200
     },
     {
-      name: 'صفحة مأذون محدد',
-      path: '/sheikh/abdulrahman-safer-al-malki',
+      name: 'صفحة مأذون تجريبي',
+      path: '/sheikh/test-sheikh',
       expectedStatus: 200
     },
     {

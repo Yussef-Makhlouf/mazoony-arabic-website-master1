@@ -21,14 +21,7 @@ import { useState } from "react"
 export function HeroSection() {
   const [selectedCity, setSelectedCity] = useState("")
 
-  const cities = [
-    { name: "الرياض", slug: "riyadh" },
-    { name: "جدة", slug: "jeddah" },
-    { name: "مكة المكرمة", slug: "makkah" },
-    { name: "المدينة المنورة", slug: "madinah" },
-    { name: "الدمام", slug: "dammam" },
-    { name: "الطائف", slug: "taif" },
-  ]
+  // تم حذف البيانات الثابتة - المدن يتم جلبها من قاعدة البيانات
 
 
   return (

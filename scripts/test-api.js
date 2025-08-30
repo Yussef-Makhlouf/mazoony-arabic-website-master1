@@ -33,12 +33,12 @@ async function testAPI() {
     },
     {
       name: 'اختبار مأذون محدد',
-      endpoint: '/sheikhs/abdulrahman-safer-al-malki',
+      endpoint: '/sheikhs/test-sheikh',
       method: 'GET'
     },
     {
       name: 'اختبار البحث',
-      endpoint: '/search?q=الرياض&type=all&limit=5',
+      endpoint: '/search?q=test&type=all&limit=5',
       method: 'GET'
     },
     {
@@ -80,9 +80,9 @@ async function testPages() {
 
   const pages = [
     '/cities',
-    '/city/al-riyadh',
+    '/city/test-city',
     '/sheikhs',
-    '/sheikh/abdulrahman-safer-al-malki'
+    '/sheikh/test-sheikh'
   ]
 
   for (const page of pages) {

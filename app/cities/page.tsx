@@ -9,7 +9,7 @@ import { cityAPI } from "@/lib/api"
 // Get data from APIs
 async function getCitiesPageData() {
   try {
-    const allCities = await cityAPI.getAll()
+    const allCities = await cityAPI.getAll() as any[]
     const featuredCities = allCities.filter(city => city.featured)
     const otherCities = allCities.filter(city => !city.featured)
     
@@ -103,7 +103,7 @@ export default async function CitiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredCities.map((city) => (
+            {featuredCities.map((city: any) => (
               <Link key={city.id} href={`/city/${city.slug}`}>
                 <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-full -translate-y-16 translate-x-16"></div>
@@ -168,19 +168,19 @@ export default async function CitiesPage() {
           </div>
 
           <div className="space-y-12">
-            {regions.map((region) => (
+            {regions.map((region: any) => (
               <div key={region.name}>
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold arabic-heading text-foreground mb-2">
                     {region.name}
                   </h3>
                   <p className="text-muted-foreground arabic-text">
-                    {region.cities.length} مدينة • {region.cities.reduce((sum, city) => sum + city.count, 0)} مأذون
+                    {region.cities.length} مدينة • {region.cities.reduce((sum: any, city: any) => sum + city.count, 0)} مأذون
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {region.cities.map((city) => (
+                  {region.cities.map((city: any) => (
                     <Link key={city.id} href={`/city/${city.slug}`}>
                       <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group">
                         <CardHeader className="text-center">
