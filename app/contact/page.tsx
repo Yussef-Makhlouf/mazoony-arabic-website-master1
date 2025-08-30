@@ -162,6 +162,10 @@ export default function ContactPage() {
       
       {/* Header Section */}
       <header className="relative overflow-hidden bg-card border-b border-border">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor2.jpg')" }}
+      ></div>
         <div className="absolute inset-0 islamic-pattern opacity-5"></div>
         <div className="relative container mx-auto px-4 py-16">
           <div className="text-center">

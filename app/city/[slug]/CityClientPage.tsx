@@ -97,6 +97,10 @@ export default function CityClientPage({ params }: ClientPageProps) {
       <NavBar />
       
       <header className="relative overflow-hidden bg-card border-b border-border">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor2.jpg')" }}
+      ></div>
         <div className="absolute inset-0 islamic-pattern opacity-5"></div>
         <div className="relative container mx-auto px-4 py-8">
           <div className="flex items-center gap-4 mb-6">
@@ -131,6 +135,10 @@ export default function CityClientPage({ params }: ClientPageProps) {
       </header>
 
       <main className="container mx-auto px-4 py-12">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor3.jpg')" }}
+      ></div>
         {sheikhs.length > 0 ? (
           <>
             <section className="mb-12">

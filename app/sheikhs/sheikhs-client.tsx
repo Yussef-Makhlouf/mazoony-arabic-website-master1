@@ -121,7 +121,9 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
             {cities.map((city) => (
               <Link key={city.slug} href={`/city/${city.slug}`}>
                 <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group text-center">
+                
                   <CardContent className="p-4">
+                    
                     <div className="flex justify-center mb-3">
                       <div className="p-3 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
                         <MapPin className="h-6 w-6 text-primary" />

@@ -158,12 +158,12 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
           )}
 
           <div className="grid grid-cols-1 gap-3">
-            <Button className="w-full arabic-text text-lg py-6" asChild>
+            <Button className="w-full arabic-text text-lg py-6  rounded-[10px]" asChild>
               <Link href={`/sheikh/${sheikh.slug || sheikh.id}`}>عرض الملف الشخصي</Link>
             </Button>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" className="arabic-text bg-transparent" asChild>
+              <Button variant="outline" className="arabic-text bg-transparent rounded-[10px]" asChild>
                 <a href={`tel:${sheikh.phone}`}>
                   <Phone className="w-4 h-4 ml-2" />
                   اتصال
@@ -171,7 +171,7 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
               </Button>
               <Button
                 variant="outline"
-                className="arabic-text bg-green-50  text-green-700 border-green-200  hover:bg-green-700 hover:text-green-700"
+                className="arabic-text bg-green-50  text-green-700 border-green-200  hover:bg-green-700 hover:text-white rounded-[10px]"
                 asChild
               >
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer">
@@ -257,12 +257,12 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
 
         {showBookingButton && (
           <div className="space-y-2">
-            <Button size="sm" className="w-full arabic-text" asChild>
+            <Button size="default" className="w-full arabic-text rounded-[10px]" asChild>
               <Link href={`/sheikh/${sheikh.slug || sheikh.id}`}>عرض الملف الشخصي</Link>
             </Button>
 
             <div className="grid grid-cols-2 gap-2">
-              <Button size="sm" variant="outline" className="arabic-text bg-transparent" asChild>
+              <Button size="sm" variant="outline" className="arabic-text bg-transparent rounded-[10px]" asChild>
                 <a href={`tel:${sheikh.phone}`}>
                   <Phone className="w-4 h-4 ml-1" />
                   اتصال
@@ -271,7 +271,7 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
               <Button
                 size="sm"
                 variant="outline"
-                className="arabic-text bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-700"
+                className="arabic-text bg-green-50 text-green-700 border-green-200 hover:bg-green-100 hover:text-green-700 rounded-[10px]"
                 asChild
               >
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" >

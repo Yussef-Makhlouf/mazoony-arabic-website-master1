@@ -125,7 +125,12 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
       
       {/* Header Section - Mobile Optimized */}
       <header className="relative overflow-hidden bg-card border-b border-border">
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10"
+        style={{ backgroundImage: "url('/decor2.jpg')" }}
+      ></div>
         <div className="absolute inset-0 islamic-pattern opacity-5"></div>
+
         <div className="relative container mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6">
           {/* Back Navigation - Mobile Friendly */}
           <div className="flex items-center gap-2 mb-3">
@@ -157,6 +162,7 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
       </header>
 
       <main className="container mx-auto px-3 py-3 sm:px-4 sm:py-4 md:py-6 lg:py-8">
+  
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
           {/* Main Content - Mobile First Layout */}
           <div className="xl:col-span-2 space-y-3 sm:space-y-4 md:space-y-6 lg:space-y-8">
