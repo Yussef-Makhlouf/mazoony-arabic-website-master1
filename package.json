@@ -14,7 +14,10 @@
     "test:pages": "node scripts/test-pages.js",
     "type-check": "tsc --noEmit",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "prepare:deploy": "node scripts/prepare-deployment.js",
+    "vercel:build": "next build",
+    "vercel:dev": "next dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
