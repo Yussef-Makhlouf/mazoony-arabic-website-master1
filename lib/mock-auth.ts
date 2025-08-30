@@ -23,8 +23,9 @@ export class MockAuthService {
     }
   ];
 
-  // Mock reset tokens
+  // Mock reset tokens (code -> token mapping)
   private static resetTokens = new Map<string, { userId: string; email: string; expiresAt: Date }>();
+  private static resetCodes = new Map<string, { userId: string; email: string; expiresAt: Date; token: string }>();
 
   // Get user by email
   static async getUserByEmail(email: string) {
@@ -39,22 +40,63 @@ export class MockAuthService {
       throw new Error('المستخدم غير موجود');
     }
 
-    // Generate mock token
+    // Generate short reset code (6 characters)
+    const resetCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Generate full token for internal use
     const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
-    // Store token
+    // Store both code and token
     this.resetTokens.set(token, {
       userId: user._id,
       email: user.email,
       expiresAt
     });
 
-    console.log('🔄 Mock: تم إنشاء رمز الاستعادة:', token);
-    return token;
+    this.resetCodes.set(resetCode, {
+      userId: user._id,
+      email: user.email,
+      expiresAt,
+      token
+    });
+
+    console.log('🔄 Mock: تم إنشاء رمز الاستعادة:', resetCode);
+    return resetCode; // Return the short code instead of full token
   }
 
-  // Verify reset token (mock)
+  // Verify reset code (mock) - NEW METHOD
+  static async verifyResetCode(code: string, email?: string) {
+    const codeData = this.resetCodes.get(code.toUpperCase());
+    
+    if (!codeData) {
+      throw new Error('رمز الاستعادة غير صحيح');
+    }
+
+    if (codeData.expiresAt < new Date()) {
+      this.resetCodes.delete(code);
+      throw new Error('رمز الاستعادة منتهي الصلاحية');
+    }
+
+    // Optional email verification
+    if (email && codeData.email !== email) {
+      throw new Error('رمز الاستعادة غير صحيح للبريد الإلكتروني المحدد');
+    }
+
+    const user = this.mockUsers.find(u => u._id === codeData.userId);
+    if (!user) {
+      throw new Error('المستخدم غير موجود');
+    }
+
+    return {
+      user: {
+        ...user,
+        email: codeData.email
+      },
+      token: codeData.token
+    };
+  }
+
+  // Verify reset token (mock) - EXISTING METHOD FOR BACKWARD COMPATIBILITY
   static async verifyResetToken(token: string) {
     const tokenData = this.resetTokens.get(token);
     

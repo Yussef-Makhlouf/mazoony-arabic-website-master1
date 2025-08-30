@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { KeyRound, ArrowLeft, CheckCircle, AlertCircle, Mail } from "lucide-react"
+import { KeyRound, ArrowLeft, AlertCircle, Mail, CheckCircle } from "lucide-react"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [success, setSuccess] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,7 +34,11 @@ export default function ForgotPasswordPage() {
       const data = await response.json()
 
       if (response.ok) {
+        // Show success state first, then redirect after 3 seconds
         setSuccess(true)
+        setTimeout(() => {
+          router.push(`/verify-reset-code?email=${encodeURIComponent(email)}`)
+        }, 3000)
       } else {
         setError(data.error || 'حدث خطأ أثناء إرسال رمز الاستعادة')
       }
@@ -76,7 +80,7 @@ export default function ForgotPasswordPage() {
             <div>
               <CardTitle className="text-3xl arabic-heading text-gray-800">استعادة كلمة المرور</CardTitle>
               <CardDescription className="mt-3 text-gray-600">
-                أدخل بريدك الإلكتروني لاستلام رابط استعادة كلمة المرور
+                أدخل بريدك الإلكتروني لاستلام رمز استعادة كلمة المرور
               </CardDescription>
             </div>
           </CardHeader>
@@ -85,50 +89,34 @@ export default function ForgotPasswordPage() {
             {success ? (
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <h3 className="text-xl font-semibold text-green-700 arabic-heading">
-                    تم إرسال البريد الإلكتروني!
-                  </h3>
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <div className="flex items-start gap-3">
-                      <Mail className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                      <div className="text-sm text-green-700 text-right">
-                        <p className="font-medium mb-2">تم إرسال رابط استعادة كلمة المرور إلى:</p>
-                        <p className="text-green-600 font-mono bg-white px-2 py-1 rounded border">
-                          {email}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-600 space-y-2">
-                    <p>يرجى التحقق من صندوق الوارد والبريد المزعج.</p>
-                    <p>الرابط صالح لمدة <strong>15 دقيقة</strong> فقط.</p>
+                  <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+                    <CheckCircle className="w-10 h-10 text-white" />
                   </div>
                 </div>
                 
-                <div className="space-y-3">
-                  <Button 
-                    onClick={() => {
-                      setSuccess(false)
-                      setEmail("")
-                    }}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    إرسال رمز جديد
-                  </Button>
-                  
-                  <Link 
-                    href="/login"
-                    className="block w-full text-center text-sm text-blue-600 hover:text-blue-700 transition-colors"
-                  >
-                    العودة لتسجيل الدخول
-                  </Link>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-green-600 arabic-heading">
+                    تم إرسال رمز الاستعادة بنجاح!
+                  </h3>
+                  <p className="text-gray-600">
+                    تم إرسال رمز استعادة كلمة المرور إلى بريدك الإلكتروني. يرجى التحقق من صندوق الوارد والبريد العشوائي.
+                  </p>
                 </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3 justify-center">
+                    <Mail className="w-5 h-5 text-green-600" />
+                    <p className="text-sm text-green-700">
+                      في حالة عدم وصول الرمز، ستتم إعادة توجيهك تلقائياً لصفحة إدخال الرمز خلال <strong>3 ثوانٍ</strong>
+                    </p>
+                  </div>
+                </div>
+
+                <Link href={`/verify-reset-code?email=${encodeURIComponent(email)}`}>
+                  <Button className="w-full bg-green-500 hover:bg-green-600 text-white">
+                    الانتقال لإدخال الرمز الآن
+                  </Button>
+                </Link>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -155,7 +143,7 @@ export default function ForgotPasswordPage() {
                     <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                   </div>
                   <p className="text-xs text-gray-500">
-                    سنرسل لك رابط استعادة كلمة المرور على هذا البريد
+                    سنرسل لك رمز استعادة كلمة المرور على هذا البريد
                   </p>
                 </div>
 
@@ -172,7 +160,7 @@ export default function ForgotPasswordPage() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4" />
-                      إرسال رابط الاستعادة
+                      إرسال رمز الاستعادة
                     </div>
                   )}
                 </Button>

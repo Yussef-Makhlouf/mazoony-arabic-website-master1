@@ -51,15 +51,15 @@ export async function POST(request: NextRequest) {
       }
 
       try {
-        // Send password reset email
+        // Send password reset email with code
         await EmailService.sendPasswordResetEmail(email, resetToken, user.name);
         
         return NextResponse.json({
-          message: 'تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني',
+          message: 'تم إرسال رمز استعادة كلمة المرور إلى بريدك الإلكتروني',
           // For development only - remove in production
           ...(process.env.NODE_ENV === 'development' && { 
-            resetToken,
-            resetUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`
+            resetCode: resetToken,
+            message: 'رمز الاستعادة تم إرساله إلى بريدك الإلكتروني'
           })
         });
       } catch (emailError) {
@@ -69,8 +69,7 @@ export async function POST(request: NextRequest) {
           message: 'تم إرسال رمز استعادة كلمة المرور',
           // For development, return token even if email fails
           ...(process.env.NODE_ENV === 'development' && { 
-            resetToken,
-            resetUrl: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`,
+            resetCode: resetToken,
             emailError: 'فشل إرسال البريد الإلكتروني - تحقق من إعدادات SMTP'
           })
         });

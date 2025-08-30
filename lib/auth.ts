@@ -41,6 +41,7 @@ export interface PasswordResetToken {
   _id?: string;
   userId: string;
   token: string;
+  code?: string; // Short reset code
   expiresAt: Date;
   used: boolean;
   createdAt: Date;
@@ -108,6 +109,11 @@ export class AuthService {
   // Generate reset token
   static generateResetToken(): string {
     return AuthUtils.generateResetToken();
+  }
+
+  // Generate short reset code
+  static generateResetCode(): string {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
   // Create user
@@ -242,14 +248,16 @@ export class AuthService {
       throw new Error('المستخدم غير موجود');
     }
 
-    // Generate reset token
+    // Generate reset token and short code
     const token = this.generateResetToken();
+    const code = this.generateResetCode();
     const expiresAt = new Date(Date.now() + RESET_TOKEN_EXPIRES_IN);
 
-    // Save reset token
+    // Save reset token with code
     const resetToken: Omit<PasswordResetToken, '_id'> = {
       userId: user._id!,
       token,
+      code,
       expiresAt,
       used: false,
       createdAt: new Date()
@@ -257,10 +265,42 @@ export class AuthService {
 
     await db.collection('passwordResetTokens').insertOne(resetToken as any);
 
-    return token;
+    return code; // Return the short code instead of full token
   }
 
-  // Verify reset token
+  // Verify reset code (NEW METHOD)
+  static async verifyResetCode(code: string, email?: string): Promise<{ user: User; token: string }> {
+    const db = await getDatabase();
+    
+    // Find code
+    const resetToken = await db.collection('passwordResetTokens').findOne({
+      code: code.toUpperCase(),
+      used: false,
+      expiresAt: { $gt: new Date() }
+    });
+
+    if (!resetToken) {
+      throw new Error('رمز الاستعادة غير صحيح أو منتهي الصلاحية');
+    }
+
+    // Get user
+    const user = await this.getUserById(resetToken.userId);
+    if (!user) {
+      throw new Error('المستخدم غير موجود');
+    }
+
+    // Optional email verification
+    if (email && user.email !== email) {
+      throw new Error('رمز الاستعادة غير صحيح للبريد الإلكتروني المحدد');
+    }
+
+    return {
+      user,
+      token: resetToken.token
+    };
+  }
+
+  // Verify reset token (EXISTING METHOD FOR BACKWARD COMPATIBILITY)
   static async verifyResetToken(token: string): Promise<User> {
     const db = await getDatabase();
     
