@@ -90,6 +90,15 @@ export default function ForgotPassword() {
                       (في وضع التطوير: سيتم توجيهك تلقائياً لصفحة إعادة التعيين)
                     </p>
                   )}
+                  <div className="mt-4">
+                    <Link
+                      href={`/admin/verify-reset-code?email=${encodeURIComponent(email)}`}
+                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                    >
+                      <ArrowRight className="w-4 h-4" />
+                      إدخال رمز التأكيد يدوياً
+                    </Link>
+                  </div>
                 </div>
                 <Link 
                   href="/admin/login"
