@@ -14,9 +14,7 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
   // إعدادات خاصة بـ Vercel
-  experimental: {
-    serverComponentsExternalPackages: ['mongodb'],
-  },
+  serverExternalPackages: ['mongodb'],
   // إعدادات البيئة
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,

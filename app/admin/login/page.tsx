@@ -4,12 +4,13 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Eye, EyeOff, Shield, AlertCircle } from "lucide-react"
+import { Eye, EyeOff, Shield, AlertCircle, KeyRound } from "lucide-react"
 
 export default function AdminLogin() {
   const [formData, setFormData] = useState({
@@ -32,28 +33,30 @@ export default function AdminLogin() {
     setError("")
 
     try {
-      // Simulate authentication - replace with real authentication
-      if (formData.email === "admin@mazoony.com" && formData.password === "admin123") {
-        // Store authentication state
-        localStorage.setItem(
-          "adminAuth",
-          JSON.stringify({
-            isAuthenticated: true,
-            user: {
-              email: formData.email,
-              name: "مدير النظام",
-              role: "admin",
-            },
-            timestamp: Date.now(),
-          }),
-        )
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
 
+      const data = await response.json()
+
+      if (response.ok) {
+        // Store user data in localStorage for UI state
+        localStorage.setItem('adminAuth', JSON.stringify({
+          isAuthenticated: true,
+          user: data.user,
+          timestamp: Date.now(),
+        }))
+        
         router.push("/admin")
       } else {
-        setError("بيانات تسجيل الدخول غير صحيحة")
+        setError(data.error || 'حدث خطأ أثناء تسجيل الدخول')
       }
     } catch (err) {
-      setError("حدث خطأ أثناء تسجيل الدخول")
+      setError("حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى")
     } finally {
       setIsLoading(false)
     }
@@ -125,9 +128,19 @@ export default function AdminLogin() {
               </Button>
             </form>
 
+            <div className="mt-6 text-center">
+              <Link 
+                href="/admin/forgot-password" 
+                className="text-sm text-primary hover:text-primary/80 inline-flex items-center gap-2"
+              >
+                <KeyRound className="w-4 h-4" />
+                نسيت كلمة المرور؟
+              </Link>
+            </div>
+
             <div className="mt-6 p-4 bg-muted rounded-lg">
               <p className="text-sm text-admin-text-muted text-center">
-                <strong>بيانات تجريبية:</strong>
+                <strong>بيانات افتراضية:</strong>
               </p>
               <p className="text-xs text-admin-text-muted text-center mt-1">
                 البريد: admin@mazoony.com

@@ -109,6 +109,12 @@ export default function AdminLayout({
       href: "/admin/settings",
       icon: Settings,
       current: pathname.startsWith("/admin/settings")
+    },
+    {
+      name: "المستخدمين",
+      href: "/admin/users",
+      icon: User,
+      current: pathname.startsWith("/admin/users")
     }
   ]
 
@@ -221,6 +227,25 @@ export default function AdminLayout({
             (!sidebarCollapsed || isMobile) ? 'w-full' : 'w-8 h-8 p-0'
           )}
           title="تسجيل الخروج"
+          onClick={async () => {
+            try {
+              // Call logout API
+              await fetch('/api/auth/logout', {
+                method: 'POST',
+              })
+              
+              // Clear local storage
+              localStorage.removeItem("adminAuth")
+              
+              // Redirect to login
+              window.location.href = "/admin/login"
+            } catch (error) {
+              console.error('Logout error:', error)
+              // Still redirect even if API call fails
+              localStorage.removeItem("adminAuth")
+              window.location.href = "/admin/login"
+            }
+          }}
         >
           <LogOut className={cn(
             "w-4 h-4",
