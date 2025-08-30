@@ -37,7 +37,7 @@ function ResetPasswordContent() {
       verifyToken(token)
     } else {
       // If no token, redirect back to login
-      router.push('/login')
+      router.push('/admin/login')
     }
   }, [searchParams, router])
 
@@ -55,7 +55,7 @@ function ResetPasswordContent() {
         const data = await response.json()
         setError(data.error || 'رمز الاستعادة غير صالح أو منتهي الصلاحية')
         setTimeout(() => {
-          router.push('/forgot-password')
+          router.push('/admin/forgot-password')
         }, 3000)
       }
     } catch (err) {
@@ -132,7 +132,7 @@ function ResetPasswordContent() {
         
         // Redirect to login after a short delay
         setTimeout(() => {
-          router.push('/login')
+          router.push('/admin/login')
         }, 3000)
       } else {
         setError(data.error || 'حدث خطأ أثناء تغيير كلمة المرور')
@@ -175,7 +175,7 @@ function ResetPasswordContent() {
                   </div>
                 </div>
 
-                <Link href="/login">
+                <Link href="/admin/login">
                   <Button className="w-full text-white" style={{ backgroundColor: '#15803d' }}>
                     الذهاب إلى تسجيل الدخول
                   </Button>
