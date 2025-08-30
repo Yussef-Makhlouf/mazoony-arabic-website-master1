@@ -111,9 +111,9 @@ export class AuthService {
     return AuthUtils.generateResetToken();
   }
 
-  // Generate short reset code
+  // Generate short reset code (6 digits only)
   static generateResetCode(): string {
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
   // Create user

@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { KeyRound, ArrowRight, CheckCircle, AlertCircle } from "lucide-react"
+import { KeyRound, ArrowLeft, AlertCircle, Mail, CheckCircle } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
-export default function ForgotPassword() {
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { toast } = useToast()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,16 +35,14 @@ export default function ForgotPassword() {
       const data = await response.json()
 
       if (response.ok) {
-        setSuccess(true)
+        toast({
+          title: "تم الإرسال بنجاح",
+          description: "تم إرسال رمز الاستعادة إلى بريدك الإلكتروني، سيتم توجيهك لإدخال الرمز",
+          variant: "default",
+        })
         
-        // In development, show the reset token
-        if (data.resetToken && process.env.NODE_ENV === 'development') {
-          console.log('Reset token:', data.resetToken)
-          // Redirect to reset page with token for development
-          setTimeout(() => {
-            router.push(`/admin/reset-password?token=${data.resetToken}`)
-          }, 2000)
-        }
+        // Immediate redirect to verification page
+        router.push(`/verify-reset-code?email=${encodeURIComponent(email)}`)
       } else {
         setError(data.error || 'حدث خطأ أثناء إرسال رمز الاستعادة')
       }
@@ -54,99 +53,110 @@ export default function ForgotPassword() {
     }
   }
 
+
+
   return (
-    <div className="min-h-screen bg-admin-background flex items-center justify-center p-4 rtl arabic-text">
-      <div className="w-full max-w-md">
-        <Card className="admin-card shadow-lg">
-          <CardHeader className="text-center space-y-4">
+    <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
+      <div className="w-full max-w-md relative z-10">
+        {/* Back to Login Link */}
+        <div className="mb-6">
+          <Link 
+            href="/login"
+            className="inline-flex items-center gap-2 text-sm transition-colors"
+            style={{ color: '#15803d' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            العودة لتسجيل الدخول
+          </Link>
+        </div>
+
+        <Card className="shadow-lg border-0 bg-white">
+          <CardHeader className="text-center space-y-4 pb-8">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                <KeyRound className="w-8 h-8 text-primary-foreground" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
+                <KeyRound className="w-10 h-10 text-white" />
               </div>
             </div>
             <div>
-              <CardTitle className="text-2xl arabic-heading">استعادة كلمة المرور</CardTitle>
-              <CardDescription className="mt-2">
-                أدخل بريدك الإلكتروني لاستلام رمز الاستعادة
+              <CardTitle className="text-3xl arabic-heading" style={{ color: '#15803d' }}>استعادة كلمة المرور</CardTitle>
+              <CardDescription className="mt-3 text-gray-600">
+                أدخل بريدك الإلكتروني لاستلام رمز استعادة كلمة المرور
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
-            {success ? (
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <CheckCircle className="w-16 h-16 text-green-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-green-600 mb-2">
-                    تم إرسال رمز الاستعادة
-                  </h3>
-                  <p className="text-sm text-admin-text-muted">
-                    تم إرسال رمز استعادة كلمة المرور إلى بريدك الإلكتروني.
-                    يرجى التحقق من صندوق الوارد والبريد المزعج.
-                  </p>
-                  {process.env.NODE_ENV === 'development' && (
-                    <p className="text-xs text-blue-600 mt-2">
-                      (في وضع التطوير: سيتم توجيهك تلقائياً لصفحة إعادة التعيين)
-                    </p>
-                  )}
-                  <div className="mt-4">
-                    <Link
-                      href={`/admin/verify-reset-code?email=${encodeURIComponent(email)}`}
-                      className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
-                    >
-                      <ArrowRight className="w-4 h-4" />
-                      إدخال رمز التأكيد يدوياً
-                    </Link>
-                  </div>
-                </div>
-                <Link 
-                  href="/admin/login"
-                  className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  العودة لتسجيل الدخول
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+          
+          <CardContent className="pb-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">البريد الإلكتروني</Label>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-gray-700 font-medium">البريد الإلكتروني</Label>
+                <div className="relative">
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@mazoony.com"
+                    placeholder="أدخل بريدك الإلكتروني"
                     required
                     disabled={isLoading}
+                    className="h-12 pr-12 border-gray-200 focus:ring-2"
+                    style={{ 
+                      borderColor: '#15803d',
+                      focusBorderColor: '#15803d',
+                      focusRingColor: '#15803d'
+                    }}
                   />
+                  <Mail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 </div>
+                <p className="text-xs text-gray-500">
+                  سنرسل لك رمز استعادة كلمة المرور على هذا البريد
+                </p>
+              </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading || !email}>
-                  {isLoading ? "جاري الإرسال..." : "إرسال رمز الاستعادة"}
-                </Button>
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-white font-medium" 
+                disabled={isLoading || !email}
+                style={{ backgroundColor: '#15803d' }}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    جاري الإرسال...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    إرسال رمز الاستعادة
+                  </div>
+                )}
+              </Button>
 
-                <div className="text-center">
-                  <Link 
-                    href="/admin/login"
-                    className="text-sm text-admin-text-muted hover:text-admin-text inline-flex items-center gap-2"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                    العودة لتسجيل الدخول
-                  </Link>
-                </div>
-              </form>
-            )}
+              <div className="text-center">
+                <Link 
+                  href="/login"
+                  className="text-sm transition-colors"
+                  style={{ color: '#15803d' }}
+                >
+                  تذكرت كلمة المرور؟ تسجيل الدخول
+                </Link>
+              </div>
+            </form>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm" style={{ color: '#15803d' }}>
+            © {new Date().getFullYear()} موقع مأذوني. جميع الحقوق محفوظة.
+          </p>
+        </div>
       </div>
     </div>
   )

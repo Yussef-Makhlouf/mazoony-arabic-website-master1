@@ -74,7 +74,7 @@ function VerifyResetCodeContent() {
         
         // Redirect to reset password page
         setTimeout(() => {
-          router.push(`/reset-password?token=${encodeURIComponent(data.token)}`)
+          router.push(`/admin/reset-password?token=${encodeURIComponent(data.token)}`)
         }, 1500)
       } else {
         setError(data.error || 'رمز الاستعادة غير صحيح أو منتهي الصلاحية')
@@ -129,34 +129,34 @@ function VerifyResetCodeContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 rtl arabic-text">
+    <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
       <div className="w-full max-w-md">
         {/* Back to forgot password Link */}
-        <div className="mb-6">
+        {/* <div className="mb-6">
           <Link 
-            href="/forgot-password"
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 transition-colors"
+            href="/admin/login"
+            className="inline-flex items-center gap-2 text-sm text-green-600 hover:text-green-700 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            العودة لطلب رمز جديد
+            العودة   لتسجيل الدخول
           </Link>
-        </div>
+        </div> */}
 
         <Card className="shadow-lg border-0 bg-white">
           <CardHeader className="text-center space-y-4 pb-8">
             <div className="flex justify-center">
-              <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
                 <Shield className="w-10 h-10 text-white" />
               </div>
             </div>
             <div>
-              <CardTitle className="text-3xl arabic-heading text-gray-800">تأكيد رمز الاستعادة</CardTitle>
+              <CardTitle className="text-3xl arabic-heading" style={{ color: '#15803d' }}>تأكيد رمز الاستعادة</CardTitle>
               <CardDescription className="mt-3 text-gray-600">
                 أدخل رمز الاستعادة المرسل إلى بريدك الإلكتروني
               </CardDescription>
               {email && (
-                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-700">
+                <div className="mt-3 p-3 rounded-lg" style={{ backgroundColor: '#f0fdf4', border: '1px solid #15803d' }}>
+                  <p className="text-sm" style={{ color: '#15803d' }}>
                     تم الإرسال إلى: {email.replace(/(.{2})(.*)(@.*)/, '$1***$3')}
                   </p>
                 </div>
@@ -188,7 +188,10 @@ function VerifyResetCodeContent() {
                     placeholder="000000"
                     required
                     disabled={isLoading}
-                    className="h-14 text-center text-2xl font-mono tracking-[0.5em] border-gray-200 focus:border-blue-500 focus:ring-blue-500"
+                    className="h-14 text-center text-2xl font-mono tracking-[0.5em] focus:ring-2"
+                    style={{ 
+                      borderColor: '#15803d'
+                    }}
                     maxLength={6}
                     autoComplete="one-time-code"
                   />
@@ -200,8 +203,9 @@ function VerifyResetCodeContent() {
 
               <Button 
                 type="submit" 
-                className="w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-medium" 
+                className="w-full h-12 text-white font-medium" 
                 disabled={isLoading || code.length < 4}
+                style={{ backgroundColor: '#15803d' }}
               >
                 {isLoading ? (
                   <div className="flex items-center gap-2">
@@ -223,7 +227,12 @@ function VerifyResetCodeContent() {
                   variant="outline"
                   onClick={resendCode}
                   disabled={isResending || !email || cooldown > 0}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  className="border-2 hover:bg-opacity-10"
+                  style={{ 
+                    color: '#15803d', 
+                    borderColor: '#15803d',
+                    backgroundColor: 'transparent'
+                  }}
                 >
                   {isResending ? (
                     <div className="flex items-center gap-2">
@@ -245,8 +254,8 @@ function VerifyResetCodeContent() {
               </div>
 
               {/* Help text */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <div className="text-xs text-gray-600 space-y-2">
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #15803d' }}>
+                <div className="text-xs space-y-2" style={{ color: '#15803d' }}>
                   <p><strong>ملاحظات مهمة:</strong></p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>الرمز صالح لمدة 15 دقيقة فقط</li>
@@ -261,7 +270,7 @@ function VerifyResetCodeContent() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm" style={{ color: '#15803d' }}>
             © {new Date().getFullYear()} موقع مأذوني. جميع الحقوق محفوظة.
           </p>
         </div>
@@ -273,18 +282,18 @@ function VerifyResetCodeContent() {
 export default function VerifyResetCodePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 rtl arabic-text">
+      <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
         <div className="w-full max-w-md">
           <Card className="shadow-lg border-0 bg-white">
             <CardContent className="pt-8 pb-8">
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
-                  <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
                     <Shield className="w-10 h-10 text-white" />
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <h3 className="text-2xl font-bold text-blue-600 arabic-heading">جاري التحميل...</h3>
+                  <h3 className="text-2xl font-bold arabic-heading" style={{ color: '#15803d' }}>جاري التحميل...</h3>
                   <p className="text-gray-600">يرجى الانتظار</p>
                 </div>
               </div>

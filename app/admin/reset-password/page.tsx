@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, Suspense } from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,37 +8,40 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { KeyRound, ArrowRight, CheckCircle, AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react"
+import { ArrowLeft, Shield, AlertCircle, CheckCircle, Eye, EyeOff, Lock } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
-export default function ResetPassword() {
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
-  })
+function ResetPasswordContent() {
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isVerifying, setIsVerifying] = useState(true)
-  const [isValidToken, setIsValidToken] = useState(false)
-  const [userEmail, setUserEmail] = useState("")
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState("")
-  
+  const [success, setSuccess] = useState(false)
+  const [resetToken, setResetToken] = useState("")
   const router = useRouter()
   const searchParams = useSearchParams()
-  const token = searchParams.get('token')
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (!token) {
-      setError("رمز الاستعادة مفقود")
-      setIsVerifying(false)
-      return
+    // Get token from URL or localStorage
+    const tokenParam = searchParams.get('token')
+    const storedToken = typeof window !== 'undefined' ? localStorage.getItem('resetToken') : null
+    
+    const token = tokenParam || storedToken
+    
+    if (token) {
+      setResetToken(token)
+      // Verify token is still valid
+      verifyToken(token)
+    } else {
+      // If no token, redirect back to login
+      router.push('/login')
     }
+  }, [searchParams, router])
 
-    verifyToken()
-  }, [token])
-
-  const verifyToken = async () => {
+  const verifyToken = async (token: string) => {
     try {
       const response = await fetch('/api/auth/verify-reset-token', {
         method: 'POST',
@@ -48,24 +51,34 @@ export default function ResetPassword() {
         body: JSON.stringify({ token }),
       })
 
-      const data = await response.json()
-
-      if (response.ok && data.valid) {
-        setIsValidToken(true)
-        setUserEmail(data.userEmail)
-      } else {
-        setError(data.error || 'رمز الاستعادة غير صحيح أو منتهي الصلاحية')
+      if (!response.ok) {
+        const data = await response.json()
+        setError(data.error || 'رمز الاستعادة غير صالح أو منتهي الصلاحية')
+        setTimeout(() => {
+          router.push('/forgot-password')
+        }, 3000)
       }
     } catch (err) {
-      setError("حدث خطأ في التحقق من رمز الاستعادة")
-    } finally {
-      setIsVerifying(false)
+      setError('حدث خطأ في التحقق من رمز الاستعادة')
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    if (error) setError("")
+  const validatePassword = (pwd: string): string[] => {
+    const errors: string[] = []
+    
+    if (pwd.length < 6) {
+      errors.push('كلمة المرور يجب أن تكون على الأقل 6 أحرف')
+    }
+    
+    if (!/(?=.*[a-zA-Z])/.test(pwd)) {
+      errors.push('كلمة المرور يجب أن تحتوي على حرف واحد على الأقل')
+    }
+    
+    if (!/(?=.*\d)/.test(pwd)) {
+      errors.push('كلمة المرور يجب أن تحتوي على رقم واحد على الأقل')
+    }
+    
+    return errors
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,15 +87,16 @@ export default function ResetPassword() {
     setError("")
 
     // Validate passwords match
-    if (formData.password !== formData.confirmPassword) {
+    if (password !== confirmPassword) {
       setError("كلمة المرور وتأكيدها غير متطابقين")
       setIsLoading(false)
       return
     }
 
     // Validate password strength
-    if (formData.password.length < 6) {
-      setError("كلمة المرور يجب أن تكون على الأقل 6 أحرف")
+    const passwordErrors = validatePassword(password)
+    if (passwordErrors.length > 0) {
+      setError(passwordErrors[0])
       setIsLoading(false)
       return
     }
@@ -93,10 +107,10 @@ export default function ResetPassword() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          token,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword
+        body: JSON.stringify({ 
+          token: resetToken, 
+          password,
+          confirmPassword 
         }),
       })
 
@@ -105,9 +119,20 @@ export default function ResetPassword() {
       if (response.ok) {
         setSuccess(true)
         
-        // Redirect to login after 3 seconds
+        // Clear the reset token
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('resetToken')
+        }
+        
+        toast({
+          title: "تم تغيير كلمة المرور بنجاح",
+          description: "سيتم توجيهك لصفحة تسجيل الدخول خلال لحظات",
+          variant: "default",
+        })
+        
+        // Redirect to login after a short delay
         setTimeout(() => {
-          router.push('/admin/login')
+          router.push('/login')
         }, 3000)
       } else {
         setError(data.error || 'حدث خطأ أثناء تغيير كلمة المرور')
@@ -119,60 +144,42 @@ export default function ResetPassword() {
     }
   }
 
-  if (isVerifying) {
+  if (success) {
     return (
-      <div className="min-h-screen bg-admin-background flex items-center justify-center p-4 rtl arabic-text">
+      <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
         <div className="w-full max-w-md">
-          <Card className="admin-card shadow-lg">
-            <CardContent className="py-8">
-              <div className="text-center space-y-4">
-                <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-                <p className="text-admin-text-muted">جاري التحقق من رمز الاستعادة...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
+          <Card className="shadow-lg border-0 bg-white">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center space-y-6">
+                <div className="flex justify-center">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
+                    <CheckCircle className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold arabic-heading" style={{ color: '#15803d' }}>
+                    تم تغيير كلمة المرور بنجاح!
+                  </h3>
+                  <p className="text-gray-600">
+                    تم تحديث كلمة المرور الخاصة بك. يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة.
+                  </p>
+                </div>
 
-  if (!isValidToken) {
-    return (
-      <div className="min-h-screen bg-admin-background flex items-center justify-center p-4 rtl arabic-text">
-        <div className="w-full max-w-md">
-          <Card className="admin-card shadow-lg">
-            <CardHeader className="text-center space-y-4">
-              <div className="flex justify-center">
-                <div className="w-16 h-16 bg-destructive rounded-full flex items-center justify-center">
-                  <AlertCircle className="w-8 h-8 text-destructive-foreground" />
+                <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #15803d' }}>
+                  <div className="flex items-center gap-3 justify-center">
+                    <CheckCircle className="w-5 h-5" style={{ color: '#15803d' }} />
+                    <p className="text-sm" style={{ color: '#15803d' }}>
+                      سيتم توجيهك تلقائياً لصفحة تسجيل الدخول خلال لحظات...
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <CardTitle className="text-2xl arabic-heading text-destructive">
-                  رمز غير صالح
-                </CardTitle>
-                <CardDescription className="mt-2">
-                  {error || "رمز الاستعادة غير صحيح أو منتهي الصلاحية"}
-                </CardDescription>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center space-y-4">
-                <Link 
-                  href="/admin/forgot-password"
-                  className="inline-flex items-center gap-2 text-primary hover:text-primary/80"
-                >
-                  طلب رمز جديد
+
+                <Link href="/login">
+                  <Button className="w-full text-white" style={{ backgroundColor: '#15803d' }}>
+                    الذهاب إلى تسجيل الدخول
+                  </Button>
                 </Link>
-                <div>
-                  <Link 
-                    href="/admin/login"
-                    className="text-sm text-admin-text-muted hover:text-admin-text inline-flex items-center gap-2"
-                  >
-                    <ArrowRight className="w-4 h-4" />
-                    العودة لتسجيل الدخول
-                  </Link>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -182,136 +189,180 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen bg-admin-background flex items-center justify-center p-4 rtl arabic-text">
+    <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
       <div className="w-full max-w-md">
-        <Card className="admin-card shadow-lg">
-          <CardHeader className="text-center space-y-4">
+        {/* Back Link */}
+        <div className="mb-6">
+          <Link 
+            href="/verify-reset-code"
+            className="inline-flex items-center gap-2 text-sm transition-colors"
+            style={{ color: '#15803d' }}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            العودة لإدخال رمز التحقق
+          </Link>
+        </div>
+
+        <Card className="shadow-lg border-0 bg-white">
+          <CardHeader className="text-center space-y-4 pb-8">
             <div className="flex justify-center">
-              <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center">
-                <KeyRound className="w-8 h-8 text-primary-foreground" />
+              <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
+                <Lock className="w-10 h-10 text-white" />
               </div>
             </div>
             <div>
-              <CardTitle className="text-2xl arabic-heading">تعيين كلمة مرور جديدة</CardTitle>
-              <CardDescription className="mt-2">
-                للمستخدم: {userEmail}
+              <CardTitle className="text-3xl arabic-heading" style={{ color: '#15803d' }}>تعيين كلمة مرور جديدة</CardTitle>
+              <CardDescription className="mt-3 text-gray-600">
+                أدخل كلمة المرور الجديدة الخاصة بك
               </CardDescription>
             </div>
           </CardHeader>
-          <CardContent>
-            {success ? (
-              <div className="text-center space-y-4">
-                <div className="flex justify-center">
-                  <CheckCircle className="w-16 h-16 text-green-500" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-green-600 mb-2">
-                    تم تغيير كلمة المرور بنجاح
-                  </h3>
-                  <p className="text-sm text-admin-text-muted">
-                    يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة.
-                    سيتم توجيهك لصفحة تسجيل الدخول خلال ثوانٍ قليلة.
-                  </p>
-                </div>
-                <Link 
-                  href="/admin/login"
-                  className="inline-flex items-center gap-2 text-primary hover:text-primary/80"
-                >
-                  <ArrowRight className="w-4 h-4" />
-                  تسجيل الدخول الآن
-                </Link>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
+          
+          <CardContent className="pb-8">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {error && (
+                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-red-700">{error}</AlertDescription>
+                </Alert>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="password">كلمة المرور الجديدة</Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={(e) => handleInputChange("password", e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      disabled={isLoading}
-                      className="pl-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-text-muted hover:text-admin-text"
-                      disabled={isLoading}
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">تأكيد كلمة المرور</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={formData.confirmPassword}
-                      onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                      placeholder="••••••••"
-                      required
-                      disabled={isLoading}
-                      className="pl-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute left-3 top-1/2 transform -translate-y-1/2 text-admin-text-muted hover:text-admin-text"
-                      disabled={isLoading}
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-xs text-admin-text-muted space-y-1">
-                  <p>متطلبات كلمة المرور:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li className={formData.password.length >= 6 ? "text-green-600" : ""}>
-                      على الأقل 6 أحرف
-                    </li>
-                    <li className={formData.password === formData.confirmPassword && formData.confirmPassword ? "text-green-600" : ""}>
-                      تطابق كلمة المرور مع التأكيد
-                    </li>
-                  </ul>
-                </div>
-
-                <Button 
-                  type="submit" 
-                  className="w-full" 
-                  disabled={isLoading || !formData.password || !formData.confirmPassword}
-                >
-                  {isLoading ? "جاري التحديث..." : "تعيين كلمة المرور"}
-                </Button>
-
-                <div className="text-center">
-                  <Link 
-                    href="/admin/login"
-                    className="text-sm text-admin-text-muted hover:text-admin-text inline-flex items-center gap-2"
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-gray-700 font-medium">كلمة المرور الجديدة</Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value)
+                      if (error) setError("")
+                    }}
+                    placeholder="أدخل كلمة المرور الجديدة"
+                    required
+                    disabled={isLoading}
+                    className="h-12 pl-12 focus:ring-2"
+                    style={{ borderColor: '#15803d' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={isLoading}
                   >
-                    <ArrowRight className="w-4 h-4" />
-                    العودة لتسجيل الدخول
-                  </Link>
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
                 </div>
-              </form>
-            )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-gray-700 font-medium">تأكيد كلمة المرور</Label>
+                <div className="relative">
+                  <Input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    value={confirmPassword}
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value)
+                      if (error) setError("")
+                    }}
+                    placeholder="أعد إدخال كلمة المرور"
+                    required
+                    disabled={isLoading}
+                    className="h-12 pl-12 focus:ring-2"
+                    style={{ borderColor: '#15803d' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={isLoading}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Password Requirements */}
+              <div className="rounded-lg p-4" style={{ backgroundColor: '#f0fdf4', border: '1px solid #15803d' }}>
+                <p className="text-sm font-medium mb-2" style={{ color: '#15803d' }}>متطلبات كلمة المرور:</p>
+                <ul className="text-xs space-y-1" style={{ color: '#15803d' }}>
+                  <li className={`flex items-center gap-2 ${password.length >= 6 ? 'text-green-600' : ''}`}>
+                    <div className={`w-2 h-2 rounded-full ${password.length >= 6 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    على الأقل 6 أحرف
+                  </li>
+                  <li className={`flex items-center gap-2 ${/(?=.*[a-zA-Z])/.test(password) ? 'text-green-600' : ''}`}>
+                    <div className={`w-2 h-2 rounded-full ${/(?=.*[a-zA-Z])/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    حرف واحد على الأقل
+                  </li>
+                  <li className={`flex items-center gap-2 ${/(?=.*\d)/.test(password) ? 'text-green-600' : ''}`}>
+                    <div className={`w-2 h-2 rounded-full ${/(?=.*\d)/.test(password) ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    رقم واحد على الأقل
+                  </li>
+                  <li className={`flex items-center gap-2 ${password === confirmPassword && password.length > 0 ? 'text-green-600' : ''}`}>
+                    <div className={`w-2 h-2 rounded-full ${password === confirmPassword && password.length > 0 ? 'bg-green-500' : 'bg-gray-300'}`}></div>
+                    تطابق كلمات المرور
+                  </li>
+                </ul>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full h-12 text-white font-medium" 
+                disabled={isLoading || !password || !confirmPassword || password !== confirmPassword}
+                style={{ backgroundColor: '#15803d' }}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    جاري تحديث كلمة المرور...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    تحديث كلمة المرور
+                  </div>
+                )}
+              </Button>
+            </form>
           </CardContent>
         </Card>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm" style={{ color: '#15803d' }}>
+            © {new Date().getFullYear()} موقع مأذوني. جميع الحقوق محفوظة.
+          </p>
+        </div>
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center p-4 rtl arabic-text" style={{ backgroundColor: '#f0fdf4' }}>
+        <div className="w-full max-w-md">
+          <Card className="shadow-lg border-0 bg-white">
+            <CardContent className="pt-8 pb-8">
+              <div className="text-center space-y-6">
+                <div className="flex justify-center">
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: '#15803d' }}>
+                    <Lock className="w-10 h-10 text-white" />
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold arabic-heading" style={{ color: '#15803d' }}>جاري التحميل...</h3>
+                  <p className="text-gray-600">يرجى الانتظار</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   )
 }
