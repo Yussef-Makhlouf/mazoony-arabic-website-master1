@@ -174,7 +174,6 @@ export default function AdminSheikhs() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          ...sheikh,
           verified: !sheikh.verified
         }),
       })
@@ -184,12 +183,16 @@ export default function AdminSheikhs() {
         setSheikhsData(prev => prev.map(s => 
           s._id === sheikhId ? { ...s, verified: !s.verified } : s
         ))
+        setFilteredSheikhs(prev => prev.map(s => 
+          s._id === sheikhId ? { ...s, verified: !s.verified } : s
+        ))
         toast({
           title: "نجح",
           description: `تم ${sheikh.verified ? 'إلغاء' : 'تفعيل'} التحقق من المأذون`,
         })
       } else {
         const errorData = await response.json()
+        console.error("خطأ في API:", errorData)
         toast({
           title: "خطأ",
           description: errorData.error || "فشل في تحديث حالة التحقق",
