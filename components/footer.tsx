@@ -18,12 +18,13 @@ import {
   Star
 } from "lucide-react"
 import { useEffect, useState } from "react"
-import { settingsAPI } from "@/lib/api"
+import { settingsAPI, cityAPI } from "@/lib/api"
 
 export function Footer() {
   const currentYear = new Date().getFullYear()
   const [sitePhone, setSitePhone] = useState<string>("")
   const [waNumber, setWaNumber] = useState<string>("")
+  const [cities, setCities] = useState<{ name: string; href: string }[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -31,6 +32,16 @@ export function Footer() {
         const s = await settingsAPI.get()
         setSitePhone(s.contactPhone || "")
         setWaNumber(s.whatsappNumber || "")
+        
+        // جلب 6 مدن فقط من قاعدة البيانات
+        const citiesData = await cityAPI.getAll()
+        const citiesList = citiesData
+          .filter((city: any) => city.featured) // أخذ أول 6 مدن فقط
+          .map((city: any) => ({
+            name: city.name,
+            href: `/city/${city.slug}`
+          }))
+        setCities(citiesList)
       } catch (e) {
         console.error(e)
       }
@@ -47,7 +58,6 @@ export function Footer() {
   ]
 
   // تم حذف البيانات الثابتة - المدن يتم جلبها من قاعدة البيانات
-  const cities: { name: string; href: string }[] = []
 
   const services = [
     { name: "توثيق عقود الزواج", description: "خدمة توثيق العقود الشرعية" },
@@ -62,7 +72,7 @@ export function Footer() {
     { name: "إنستغرام", icon: Instagram, href: "#" },
     { name: "يوتيوب", icon: Youtube, href: "#" },
   ]
-
+ 
   return (
     <footer className="relative overflow-hidden bg-card border-t border-border">
       {/* Background Elements */}
