@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { settingsAPI } from "@/lib/api"
+import { settingsAPI, citiesAPI } from "@/lib/api"
 import { Card } from "@/components/ui/card"
 import { 
   Menu, 
@@ -16,7 +16,8 @@ import {
   Home,
   Building2,
   User,
-  Info
+  Info,
+  FileText
 } from "lucide-react"
 
 interface City {
@@ -41,13 +42,11 @@ export function NavBar() {
     const fetchCities = async () => {
       setIsLoadingCities(true)
       try {
-        const response = await fetch('/api/cities?featured=true')
-        if (response.ok) {
-          const data = await response.json()
-          setCities(data)
-        }
+        const citiesData = await citiesAPI.getFeatured()
+        setCities(citiesData || [])
       } catch (error) {
         console.error('Error fetching cities:', error)
+        setCities([])
       } finally {
         setIsLoadingCities(false)
       }
@@ -174,6 +173,11 @@ export function NavBar() {
               المأذونين
             </Link>
 
+            <Link href="/blog" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors arabic-text">
+              <FileText className="w-4 h-4" />
+              المدونة
+            </Link>
+
             <Link href="/about" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors arabic-text">
               <Info className="w-4 h-4" />
               من نحن
@@ -269,6 +273,15 @@ export function NavBar() {
                   جميع المدن
               </Link>
                
+              <Link 
+                href="/blog" 
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors arabic-text"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <FileText className="w-5 h-5" />
+                المدونة
+              </Link>
+
               <Link 
                 href="/about" 
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-primary/10 transition-colors arabic-text"

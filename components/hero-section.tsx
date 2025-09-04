@@ -63,6 +63,19 @@ export function HeroSection() {
             </p>
           </div>
 
+          {/* Cities Selection Button */}
+          <div className="mt-12">
+            <Link href="/cities">
+              <Button 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground px-8 py-4 text-lg font-medium shadow-lg"
+              >
+                <MapPin className="ml-2 h-5 w-5" />
+                اختر مدينتك
+                <ArrowRight className="mr-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
      
         </div>
       </div>

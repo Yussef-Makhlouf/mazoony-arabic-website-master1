@@ -4,6 +4,7 @@ import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
 import localFont from "next/font/local"
 import { Toaster } from "@/components/ui/toaster"
+import { WhatsAppFloatButton } from "@/components/whatsapp-float-button"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -49,6 +50,7 @@ export default function RootLayout({
       >
         {children}
         <Toaster />
+        <WhatsAppFloatButton />
       </body>
     </html>
   )

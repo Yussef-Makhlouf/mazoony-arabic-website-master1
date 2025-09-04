@@ -102,3 +102,46 @@ export type Message = {
   createdAt: Date
   updatedAt: Date
 }
+
+// Article Types
+export type Article = {
+  _id: string
+  title: string
+  slug: string
+  excerpt: string
+  content: string
+  image?: string
+  author: {
+    name: string
+    email: string
+    avatar?: string
+  }
+  category: string
+  tags: string[]
+  status: 'draft' | 'published' | 'archived'
+  featured: boolean
+  views: number
+  readingTime: number
+  seoTitle?: string
+  seoDescription?: string
+  seoKeywords?: string[]
+  publishedAt?: Date
+  createdAt: Date
+  updatedAt: Date
+  createdBy: string
+  updatedBy: string
+}
+
+// Article Category Types
+export type ArticleCategory = {
+  _id: string
+  name: string
+  slug: string
+  description: string
+  color: string
+  icon?: string
+  isActive: boolean
+  articleCount: number
+  createdAt: Date
+  updatedAt: Date
+}

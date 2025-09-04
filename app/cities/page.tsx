@@ -30,6 +30,7 @@ async function getCitiesPageData() {
     return { allCities, featuredCities, otherCities, regions: regionsArray }
   } catch (error) {
     console.error('Error fetching cities page data:', error)
+    // Return empty arrays - no static data
     return { allCities: [], featuredCities: [], otherCities: [], regions: [] }
   }
 }

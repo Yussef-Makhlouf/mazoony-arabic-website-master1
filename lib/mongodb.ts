@@ -73,7 +73,9 @@ async function createCollections(db: Db): Promise<void> {
     'users',
     'settings',
     'activityLogs',
-    'statistics'
+    'statistics',
+    'articles',
+    'articleCategories'
   ];
 
   for (const collectionName of collections) {
@@ -154,6 +156,22 @@ async function createIndexes(db: Db): Promise<void> {
     await db.collection('statistics').createIndex({ "date": 1 });
     await db.collection('statistics').createIndex({ "type": 1 });
     await db.collection('statistics').createIndex({ "createdAt": -1 });
+
+    // فهارس المقالات
+    await db.collection('articles').createIndex({ "slug": 1 }, { unique: true });
+    await db.collection('articles').createIndex({ "category": 1 });
+    await db.collection('articles').createIndex({ "status": 1 });
+    await db.collection('articles').createIndex({ "featured": 1 });
+    await db.collection('articles').createIndex({ "publishedAt": -1 });
+    await db.collection('articles').createIndex({ "createdAt": -1 });
+    await db.collection('articles').createIndex({ "tags": 1 });
+    await db.collection('articles').createIndex({ "author.email": 1 });
+    await db.collection('articles').createIndex({ "views": -1 });
+
+    // فهارس تصنيفات المقالات
+    await db.collection('articleCategories').createIndex({ "slug": 1 }, { unique: true });
+    await db.collection('articleCategories').createIndex({ "isActive": 1 });
+    await db.collection('articleCategories').createIndex({ "createdAt": -1 });
 
     console.log('✅ تم إنشاء جميع الفهارس بنجاح');
   } catch (error) {

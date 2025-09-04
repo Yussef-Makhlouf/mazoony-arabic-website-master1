@@ -14,6 +14,7 @@ async function getSheikhsPageData() {
     return { allSheikhs, cities }
   } catch (error) {
     console.error('Error fetching sheikhs page data:', error)
+    // Return empty arrays - no static data
     return { allSheikhs: [], cities: [] }
   }
 }

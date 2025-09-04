@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       reviews = await ReviewService.getAllReviews()
     }
     
-    return NextResponse.json(reviews)
+    return NextResponse.json({ data: reviews })
   } catch (error) {
     console.error('Error fetching reviews:', error)
     return NextResponse.json(

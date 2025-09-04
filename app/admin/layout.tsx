@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Bell,
   PanelRight,
-  PanelLeft
+  PanelLeft,
+  BookOpen
 } from "lucide-react"
 
 export default function AdminLayout({
@@ -91,6 +92,12 @@ export default function AdminLayout({
       icon: FileText,
       current: pathname.startsWith("/admin/reviews"),
       badge: reviews?.filter(r => r.status === 'pending')?.length || 0
+    },
+    {
+      name: "المقالات",
+      href: "/admin/articles",
+      icon: BookOpen,
+      current: pathname.startsWith("/admin/articles")
     },
     {
       name: "الرسائل",

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       cities = await CityService.getCitiesWithActualCounts()
     }
     
-    return NextResponse.json(cities)
+    return NextResponse.json({ data: cities })
   } catch (error) {
     console.error('Error fetching cities:', error)
     return NextResponse.json(

@@ -8,7 +8,7 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: ['localhost', 'vercel.app'],
+    domains: ['localhost', 'vercel.app', 'netlify.app', 'herokuapp.com', 'railway.app', 'render.com'],
   },
   // تحسينات للنشر
   poweredByHeader: false,
@@ -19,34 +19,15 @@ const nextConfig = {
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },
+  // تحسينات للأداء
+  // إعدادات خاصة بـ Static Generation
+  output: 'standalone',
   // إعادة كتابة المسارات للـ API
   async rewrites() {
     return [
       {
         source: '/api/:path*',
         destination: '/api/:path*',
-      },
-    ];
-  },
-  // إعدادات الأمان
-  async headers() {
-    return [
-      {
-        source: '/api/:path*',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*',
-          },
-          {
-            key: 'Access-Control-Allow-Methods',
-            value: 'GET, POST, PUT, DELETE, OPTIONS',
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type, Authorization',
-          },
-        ],
       },
     ];
   },

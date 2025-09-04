@@ -1,29 +1,30 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { MapPin, Phone, Star, Shield, Users, Award, CheckCircle, ArrowRight, MessageCircle } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { MapPin, Phone, Star, Shield, Users, Award, CheckCircle, ArrowRight, MessageCircle, FileText, Calendar, User, Clock } from "lucide-react"
 import Link from "next/link"
 import { SheikhCard } from "@/components/sheikh-card"
 import { NavBar } from "@/components/navbar"
 import { HeroSection } from "@/components/hero-section"
 import { Footer } from "@/components/footer"
-import { settingsAPI } from "@/lib/api"
-import { cityAPI, sheikhAPI } from "@/lib/api"
+import { articlesAPI, citiesAPI, sheikhsAPI, settingsAPI } from "@/lib/api"
 
 // Get data from APIs
 async function getHomePageData() {
   try {
-    const [cities, allSheikhs] = await Promise.all([
-      cityAPI.getFeatured(),
-      sheikhAPI.getAll()
+    const [cities, allSheikhs, featuredArticles] = await Promise.all([
+      citiesAPI.getFeatured(),
+      sheikhsAPI.getAll(),
+      articlesAPI.getAll({ status: 'published', featured: true, limit: 3 })
     ])
     
     const featuredSheikhs = allSheikhs.slice(0, 3) // Get first 3 sheikhs as featured
     
-    return { cities, featuredSheikhs }
+    return { cities, featuredSheikhs, featuredArticles }
   } catch (error) {
     console.error('Error fetching home page data:', error)
-    // Return empty arrays as fallback
-    return { cities: [], featuredSheikhs: [] }
+    // Return empty arrays - no static data
+    return { cities: [], featuredSheikhs: [], featuredArticles: [] }
   }
 }
 
@@ -52,9 +53,27 @@ const services = [
 ]
 
 export default async function HomePage() {
-  const { cities, featuredSheikhs } = await getHomePageData()
-  const settings = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/settings`, { cache: 'no-store' }).then(r => r.json()).catch(() => ({} as any))
-  const wa = settings?.whatsappNumber || '966501234567'
+  const { cities, featuredSheikhs, featuredArticles } = await getHomePageData()
+
+  // تنسيق التاريخ
+  const formatDate = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return new Intl.DateTimeFormat('ar-SA', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      calendar: 'gregory'
+    }).format(dateObj)
+  }
+
+  // جلب الإعدادات
+  let wa = '966501234567'
+  try {
+    const settings = await settingsAPI.get()
+    wa = settings?.whatsappNumber || '966501234567'
+  } catch (error) {
+    console.error('Error fetching settings:', error)
+  }
   
   return (
     <div className="min-h-screen bg-background rtl">
@@ -73,7 +92,7 @@ export default async function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredSheikhs.map((sheikh) => (
+            {featuredSheikhs.map((sheikh: any) => (
               <SheikhCard
                 key={sheikh._id || sheikh.slug}
                 sheikh={sheikh}
@@ -106,7 +125,7 @@ export default async function HomePage() {
 
         <section className="pb-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cities.map((city) => (
+            {cities.map((city: any) => (
               <Link key={city._id || city.slug} href={`/city/${city.slug}`}>
                 <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group">
                   <CardHeader className="text-center">
@@ -133,6 +152,92 @@ export default async function HomePage() {
             ))}
           </div>
         </section>
+
+        {/* Blog Section */}
+        {featuredArticles.length > 0 && (
+          <section className="py-16">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold arabic-heading text-foreground mb-4">أحدث المقالات</h2>
+              <p className="text-xl arabic-text text-muted-foreground max-w-2xl mx-auto">
+                اكتشف أحدث المقالات والنصائح المفيدة حول المأذونين والزواج
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              {featuredArticles.map((article: any) => (
+                <Link key={article._id} href={`/blog/${article.slug}`}>
+                  <Card className="group hover:shadow-lg transition-all duration-300 cursor-pointer h-full border-0 bg-card/50 backdrop-blur-sm">
+                    {article.image && (
+                      <div className="relative overflow-hidden rounded-t-lg">
+                        <img 
+                          src={article.image}
+                          alt={article.title}
+                          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute top-4 right-4">
+                          <Badge className="bg-primary text-primary-foreground">
+                            <Star className="w-3 h-3 ml-1" />
+                            مميز
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <CardContent className="p-6 flex flex-col h-full">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Badge variant="outline" className="arabic-text">
+                          {article.category}
+                        </Badge>
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-primary transition-colors arabic-heading line-clamp-2">
+                        {article.title}
+                      </h3>
+                      
+                      {article.excerpt && (
+                        <p className="text-muted-foreground mb-4 line-clamp-3 arabic-text flex-1">
+                          {article.excerpt}
+                        </p>
+                      )}
+                      
+                      <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-1">
+                            <User className="w-4 h-4" />
+                            <span className="arabic-text">{article.author.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            <span className="arabic-text">{article.readingTime} دقائق</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>{formatDate(article.publishedAt || article.createdAt)}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-1 text-primary font-medium mt-4 arabic-text">
+                        <span>اقرأ المزيد</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Button variant="outline" size="lg" className="arabic-text px-8 bg-transparent" asChild>
+                <Link href="/blog">
+                  <FileText className="w-5 h-5 ml-2" />
+                  عرض جميع المقالات
+                </Link>
+              </Button>
+            </div>
+          </section>
+        )}
 
         {/* Services Section */}
         <section className="py-16">

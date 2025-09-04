@@ -20,7 +20,7 @@ export async function GET() {
     
     const settings = await SettingsService.getSettings()
     console.log('Settings fetched successfully:', settings)
-    return NextResponse.json(settings)
+    return NextResponse.json({ data: settings })
   } catch (error) {
     console.error('Error fetching settings:', error)
     return NextResponse.json({ 
@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
     const updated = await SettingsService.updateSettings(body)
     console.log('Settings updated successfully:', updated)
     
-    return NextResponse.json(updated)
+    return NextResponse.json({ data: updated })
   } catch (error) {
     console.error('Error updating settings:', error)
     return NextResponse.json({ 

@@ -100,10 +100,7 @@ export default function AdminReviews() {
 
     setIsProcessing(true)
     try {
-      await adminAPI.reviews.updateStatus(actionDialog.reviewId, {
-        status: "approved",
-        adminNotes: adminNotes
-      })
+      await adminAPI.updateReviewStatus(actionDialog.reviewId, "approved")
       
       setReviews(prev => prev.map(review => 
         review._id === actionDialog.reviewId ? { 
@@ -130,10 +127,7 @@ export default function AdminReviews() {
 
     setIsProcessing(true)
     try {
-      await adminAPI.reviews.updateStatus(actionDialog.reviewId, {
-        status: "rejected",
-        adminNotes: adminNotes
-      })
+      await adminAPI.updateReviewStatus(actionDialog.reviewId, "rejected")
       
       setReviews(prev => prev.map(review => 
         review._id === actionDialog.reviewId ? { 

@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       sheikhs = await SheikhService.getAllSheikhs()
     }
     
-    return NextResponse.json(sheikhs)
+    return NextResponse.json({ data: sheikhs })
   } catch (error) {
     console.error('Error fetching sheikhs:', error)
     return NextResponse.json(
