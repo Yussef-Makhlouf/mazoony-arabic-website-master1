@@ -87,3 +87,35 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// DELETE /api/sheikhs/[id] - Delete sheikh
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Sheikh ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const deleted = await SheikhService.deleteSheikh(id)
+    
+    if (!deleted) {
+      return NextResponse.json(
+        { error: 'Sheikh not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ message: 'Sheikh deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting sheikh:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete sheikh' },
+      { status: 500 }
+    )
+  }
+}

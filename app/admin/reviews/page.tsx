@@ -50,7 +50,9 @@ export default function AdminReviews() {
   useEffect(() => {
     const fetchReviews = async () => {
       try {
-        const pendingReviews = await reviewsAPI.getAll()
+        const reviewsData = await reviewsAPI.getAll()
+        // Ensure data is always an array to prevent filter errors
+        const pendingReviews = Array.isArray(reviewsData) ? reviewsData : []
         // Enrich with sheikh details if missing name or image
         const needsEnrichment = pendingReviews.filter(r => (!r.sheikhName || !r.sheikhImage) && (r.sheikhSlug || r.sheikhId))
         if (needsEnrichment.length > 0) {
@@ -77,13 +79,16 @@ export default function AdminReviews() {
       } catch (error) {
         console.error('Error fetching reviews:', error)
         toast.error("فشل في جلب التقييمات")
+        setReviews([]) // Set empty array on error
       }
     }
     
     fetchReviews()
   }, [])
 
-  const filteredReviews = reviews.filter(review => {
+  // Ensure reviews is always an array before filtering
+  const safeReviews = Array.isArray(reviews) ? reviews : []
+  const filteredReviews = safeReviews.filter(review => {
     const matchesSearch = 
       review.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       review.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -154,7 +159,7 @@ export default function AdminReviews() {
 
     setIsDeleting(true)
     try {
-      await adminAPI.reviews.delete(deleteModal.reviewId)
+      await adminAPI.deleteReview(deleteModal.reviewId)
       setReviews(prev => prev.filter(review => review._id !== deleteModal.reviewId))
       toast.success("تم حذف التقييم بنجاح")
       setDeleteModal({ isOpen: false, reviewId: "", reviewerName: "" })
@@ -238,7 +243,7 @@ export default function AdminReviews() {
               </div>
               <div>
                 <p className="arabic-text text-sm text-muted-foreground">في الانتظار</p>
-                <p className="arabic-text font-semibold text-foreground">{reviews.filter(r => r.status === 'pending').length}</p>
+                <p className="arabic-text font-semibold text-foreground">{safeReviews.filter(r => r.status === 'pending').length}</p>
               </div>
             </div>
           </CardContent>
@@ -251,7 +256,7 @@ export default function AdminReviews() {
               </div>
               <div>
                 <p className="arabic-text text-sm text-muted-foreground">معتمد</p>
-                <p className="arabic-text font-semibold text-foreground">{reviews.filter(r => r.status === 'approved').length}</p>
+                <p className="arabic-text font-semibold text-foreground">{safeReviews.filter(r => r.status === 'approved').length}</p>
               </div>
             </div>
           </CardContent>
@@ -264,7 +269,7 @@ export default function AdminReviews() {
               </div>
               <div>
                 <p className="arabic-text text-sm text-muted-foreground">مرفوض</p>
-                <p className="arabic-text font-semibold text-foreground">{reviews.filter(r => r.status === 'rejected').length}</p>
+                <p className="arabic-text font-semibold text-foreground">{safeReviews.filter(r => r.status === 'rejected').length}</p>
               </div>
             </div>
           </CardContent>
@@ -394,7 +399,7 @@ export default function AdminReviews() {
                         {renderStars(review.rating)}
                       </div>
                       <span className="arabic-text text-sm font-medium text-foreground">
-                        {review.rating}/5
+                        {review.rating.toFixed(1)}/5
                       </span>
                     </div>
                   </div>
@@ -489,7 +494,7 @@ export default function AdminReviews() {
                 <div className="flex items-center gap-2 mb-2">
                   {renderStars(selectedReview?.rating || 0)}
                   <span className="arabic-text text-sm text-muted-foreground">
-                    {selectedReview?.rating}/5
+                    {selectedReview?.rating.toFixed(1)}/5
                   </span>
                 </div>
                 <p className="arabic-text text-muted-foreground">

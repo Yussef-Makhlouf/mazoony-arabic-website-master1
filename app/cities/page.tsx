@@ -9,7 +9,10 @@ import { cityAPI } from "@/lib/api"
 // Get data from APIs
 async function getCitiesPageData() {
   try {
-    const allCities = await cityAPI.getAll() as any[]
+    const allCitiesData = await cityAPI.getAll()
+    // Ensure data is always an array to prevent filter errors
+    const allCities = Array.isArray(allCitiesData) ? allCitiesData : []
+    
     const featuredCities = allCities.filter(city => city.featured)
     const otherCities = allCities.filter(city => !city.featured)
     

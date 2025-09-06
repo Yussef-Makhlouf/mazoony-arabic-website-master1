@@ -226,7 +226,7 @@ export default function SheikhProfileClient({ params }: ClientPageProps) {
                           ))}
                         </div>
                         <span className="arabic-text text-muted-foreground text-xs sm:text-sm md:text-base">
-                          {sheikh.rating}/5 ({sheikh.reviewCount} تقييم)
+                          {sheikh.rating.toFixed(1)}/5 ({sheikh.reviewCount} تقييم)
                         </span>
                       </div>
                       <div className="flex items-center gap-2">

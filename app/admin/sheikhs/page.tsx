@@ -52,8 +52,10 @@ export default function AdminSheikhs() {
         ])
         
         if (sheikhsResponse.ok && citiesResponse.ok) {
-          const sheikhs = await sheikhsResponse.json()
-          const cities = await citiesResponse.json()
+          const sheikhsResult = await sheikhsResponse.json()
+          const citiesResult = await citiesResponse.json()
+          const sheikhs = Array.isArray(sheikhsResult.data) ? sheikhsResult.data : (Array.isArray(sheikhsResult) ? sheikhsResult : [])
+          const cities = Array.isArray(citiesResult.data) ? citiesResult.data : (Array.isArray(citiesResult) ? citiesResult : [])
           setSheikhsData(sheikhs)
           setFilteredSheikhs(sheikhs)
           setCitiesData(cities)
@@ -68,6 +70,9 @@ export default function AdminSheikhs() {
       } catch (error) {
         console.error("خطأ في تحميل البيانات:", error)
         setError("حدث خطأ في تحميل البيانات")
+        setSheikhsData([])  // Set empty arrays on error
+        setFilteredSheikhs([])
+        setCitiesData([])
         toast({
           title: "خطأ",
           description: "حدث خطأ في تحميل البيانات",
@@ -83,7 +88,9 @@ export default function AdminSheikhs() {
 
   // فلترة البيانات
   useEffect(() => {
-    let filtered = sheikhsData
+    // Ensure sheikhsData is always an array before filtering
+    const safeSheikhsData = Array.isArray(sheikhsData) ? sheikhsData : []
+    let filtered = safeSheikhsData
 
     // فلترة حسب البحث
     if (searchTerm) {
@@ -131,7 +138,7 @@ export default function AdminSheikhs() {
   const handleDeleteSheikh = async () => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/sheikhs/${deleteModal.sheikhId}`, {
+      const response = await fetch(`/api/sheikhs?id=${deleteModal.sheikhId}`, {
         method: "DELETE",
       })
 
@@ -258,7 +265,7 @@ export default function AdminSheikhs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sheikhsData.filter((sheikh: Sheikh) => sheikh.availability === "متاح").length}
+              {Array.isArray(sheikhsData) ? sheikhsData.filter((sheikh: Sheikh) => sheikh.availability === "متاح").length : 0}
             </div>
             <p className="text-xs text-muted-foreground">متاح للعمل</p>
           </CardContent>
@@ -271,7 +278,7 @@ export default function AdminSheikhs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sheikhsData.filter((sheikh: Sheikh) => sheikh.verified).length}
+              {Array.isArray(sheikhsData) ? sheikhsData.filter((sheikh: Sheikh) => sheikh.verified).length : 0}
             </div>
             <p className="text-xs text-muted-foreground">معتمد رسمياً</p>
           </CardContent>
@@ -284,7 +291,7 @@ export default function AdminSheikhs() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {sheikhsData.length > 0 ? (sheikhsData.reduce((acc: number, sheikh: Sheikh) => acc + sheikh.rating, 0) / sheikhsData.length).toFixed(1) : "0.0"}
+              {Array.isArray(sheikhsData) && sheikhsData.length > 0 ? (sheikhsData.reduce((acc: number, sheikh: Sheikh) => acc + sheikh.rating, 0) / sheikhsData.length).toFixed(1) : "0.0"}
             </div>
             <p className="text-xs text-muted-foreground">من 5 نجوم</p>
           </CardContent>
@@ -401,7 +408,7 @@ export default function AdminSheikhs() {
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{sheikh.rating}</span>
+                        <span className="font-medium">{sheikh.rating.toFixed(1)}</span>
                         <span className="text-sm text-gray-500">({sheikh.reviewCount})</span>
                       </div>
                     </td>

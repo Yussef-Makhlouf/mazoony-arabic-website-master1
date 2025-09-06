@@ -78,7 +78,9 @@ export default function CityClientPage({ params }: ClientPageProps) {
     )
   }
 
-  const filteredSheikhs = sheikhs.filter((sheikh) => {
+  // Ensure sheikhs is always an array before filtering
+  const safeSheikhs = Array.isArray(sheikhs) ? sheikhs : []
+  const filteredSheikhs = safeSheikhs.filter((sheikh) => {
     const matchesSearch =
       sheikh.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       sheikh.specialties?.some((s: string) => s.includes(searchTerm))

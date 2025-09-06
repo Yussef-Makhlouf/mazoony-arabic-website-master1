@@ -67,3 +67,35 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// DELETE /api/cities/[id] - Delete city
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+    
+    if (!id) {
+      return NextResponse.json(
+        { error: 'City ID is required' },
+        { status: 400 }
+      )
+    }
+
+    const deleted = await CityService.deleteCity(id)
+    
+    if (!deleted) {
+      return NextResponse.json(
+        { error: 'City not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json({ message: 'City deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting city:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete city' },
+      { status: 500 }
+    )
+  }
+}

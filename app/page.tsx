@@ -18,9 +18,18 @@ async function getHomePageData() {
       articlesAPI.getAll({ status: 'published', featured: true, limit: 3 })
     ])
     
-    const featuredSheikhs = allSheikhs.slice(0, 3) // Get first 3 sheikhs as featured
+    // Ensure data is always an array to prevent filter errors
+    const safeCities = Array.isArray(cities) ? cities : []
+    const safeAllSheikhs = Array.isArray(allSheikhs) ? allSheikhs : []
+    const safeFeaturedArticles = Array.isArray(featuredArticles) ? featuredArticles : []
     
-    return { cities, featuredSheikhs, featuredArticles }
+    const featuredSheikhs = safeAllSheikhs.slice(0, 3) // Get first 3 sheikhs as featured
+    
+    return { 
+      cities: safeCities, 
+      featuredSheikhs, 
+      featuredArticles: safeFeaturedArticles 
+    }
   } catch (error) {
     console.error('Error fetching home page data:', error)
     // Return empty arrays - no static data

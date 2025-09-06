@@ -64,7 +64,7 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1">
                   <Star className="w-3 h-3 fill-secondary text-secondary" />
-                  <span className="text-sm font-medium">{sheikh.rating}</span>
+                  <span className="text-sm font-medium">{sheikh.rating.toFixed(1)}</span>
                 </div>
                 {sheikh.availability && (
                   <Badge variant="outline" className={`text-xs ${availabilityColors[sheikh.availability]}`}>
@@ -129,7 +129,7 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
           <div className="flex items-center justify-center gap-6 text-sm mb-4">
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-secondary text-secondary" />
-              <span className="font-bold text-lg">{sheikh.rating}</span>
+              <span className="font-bold text-lg">{sheikh.rating.toFixed(1)}</span>
               <span className="text-muted-foreground">({sheikh.reviewCount})</span>
             </div>
 
@@ -220,7 +220,7 @@ export function SheikhCard({ sheikh, variant = "default", showBookingButton = tr
         <div className="flex items-center justify-center gap-4 text-sm mb-3">
           <div className="flex items-center gap-1">
             <Star className="w-4 h-4 fill-secondary text-secondary" />
-            <span className="font-medium">{sheikh.rating}</span>
+            <span className="font-medium">{sheikh.rating.toFixed(1)}</span>
             <span className="text-muted-foreground">({sheikh.reviewCount})</span>
           </div>
 

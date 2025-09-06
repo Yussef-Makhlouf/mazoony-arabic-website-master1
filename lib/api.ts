@@ -62,7 +62,7 @@ export const articlesAPI = {
     }
     
     const result: ArticlesResponse = await response.json()
-    return result.data
+    return Array.isArray(result.data) ? result.data : []
   },
 
   // جلب مقال واحد
@@ -171,7 +171,7 @@ export const articleCategoriesAPI = {
     }
     
     const result: CategoriesResponse = await response.json()
-    return result.data
+    return Array.isArray(result.data) ? result.data : []
   },
 
   // إنشاء تصنيف جديد
@@ -200,7 +200,7 @@ export const sheikhsAPI = {
     const response = await fetch(`${getBaseUrl()}/api/sheikhs`)
     if (!response.ok) throw new Error('فشل في جلب المأذونين')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   getById: async (id: string): Promise<any> => {
@@ -226,14 +226,14 @@ export const sheikhsAPI = {
     const response = await fetch(`${getBaseUrl()}/api/sheikhs?city=${citySlug}`)
     if (!response.ok) throw new Error('فشل في جلب مأذوني المدينة')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   search: async (query: string): Promise<any[]> => {
     const response = await fetch(`${getBaseUrl()}/api/sheikhs?search=${encodeURIComponent(query)}`)
     if (!response.ok) throw new Error('فشل في البحث عن المأذونين')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   create: async (sheikhData: any): Promise<any> => {
@@ -281,14 +281,14 @@ export const citiesAPI = {
     const response = await fetch(`${getBaseUrl()}/api/cities`)
     if (!response.ok) throw new Error('فشل في جلب المدن')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   getFeatured: async (): Promise<any[]> => {
     const response = await fetch(`${getBaseUrl()}/api/cities?featured=true`)
     if (!response.ok) throw new Error('فشل في جلب المدن المميزة')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   getById: async (id: string): Promise<any> => {
@@ -355,7 +355,7 @@ export const reviewsAPI = {
     const response = await fetch(`${getBaseUrl()}/api/reviews`)
     if (!response.ok) throw new Error('فشل في جلب التقييمات')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   getById: async (id: string): Promise<any> => {
@@ -369,7 +369,7 @@ export const reviewsAPI = {
     const response = await fetch(`${getBaseUrl()}/api/reviews?sheikhId=${sheikhId}`)
     if (!response.ok) throw new Error('فشل في جلب تقييمات المأذون')
     const result = await response.json()
-    return result.data || []
+    return Array.isArray(result.data) ? result.data : []
   },
 
   create: async (reviewData: any): Promise<any> => {
@@ -457,7 +457,8 @@ export const messagesAPI = {
       const error = await response.json()
       throw new Error(error.error || 'فشل في جلب الرسائل')
     }
-    return await response.json()
+    const result = await response.json()
+    return Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : [])
   },
 
   async getById(id: string) {
@@ -512,7 +513,8 @@ export const adminAPI = {
       const error = await response.json()
       throw new Error(error.error || 'فشل في جلب الرسائل')
     }
-    return await response.json()
+    const result = await response.json()
+    return Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : [])
   },
 
   async getReviews(params: any = {}) {
@@ -522,7 +524,8 @@ export const adminAPI = {
       const error = await response.json()
       throw new Error(error.error || 'فشل في جلب التقييمات')
     }
-    return await response.json()
+    const result = await response.json()
+    return Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : [])
   },
 
   async updateMessageStatus(id: string, status: string) {
@@ -549,6 +552,43 @@ export const adminAPI = {
       throw new Error(error.error || 'فشل في تحديث حالة التقييم')
     }
     return await response.json()
+  },
+
+  async deleteReview(id: string) {
+    const response = await fetch(`/api/admin/reviews/${id}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'فشل في حذف التقييم')
+    }
+    return await response.json()
+  },
+
+  async deleteMessage(id: string) {
+    const response = await fetch(`/api/admin/messages/${id}`, {
+      method: 'DELETE',
+    })
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'فشل في حذف الرسالة')
+    }
+    return await response.json()
+  },
+
+  messages: {
+    async respond(id: string, data: { status: string; response?: string }) {
+      const response = await fetch(`/api/admin/messages/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'فشل في تحديث الرسالة')
+      }
+      return await response.json()
+    }
   }
 }
 

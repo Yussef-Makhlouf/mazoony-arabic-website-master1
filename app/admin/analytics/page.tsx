@@ -50,8 +50,8 @@ export default function AdminAnalytics() {
         if (citiesResponse.ok && sheikhsResponse.ok) {
           const citiesData = await citiesResponse.json()
           const sheikhsData = await sheikhsResponse.json()
-          setCities(citiesData)
-          setSheikhs(sheikhsData)
+          setCities(Array.isArray(citiesData.data) ? citiesData.data : [])
+          setSheikhs(Array.isArray(sheikhsData.data) ? sheikhsData.data : [])
         }
       } catch (error) {
         console.error("خطأ في تحميل البيانات:", error)
@@ -67,17 +67,19 @@ export default function AdminAnalytics() {
   useEffect(() => {
     if (cities.length === 0 && sheikhs.length === 0) return
 
-    const totalReviews = sheikhs.reduce((acc, sheikh) => acc + sheikh.reviewCount, 0)
-    const averageRating = sheikhs.length > 0 
-      ? (sheikhs.reduce((acc, sheikh) => acc + sheikh.rating, 0) / sheikhs.length).toFixed(1)
+    const safeCities = Array.isArray(cities) ? cities : []
+    const safeSheikhs = Array.isArray(sheikhs) ? sheikhs : []
+    const totalReviews = safeSheikhs.reduce((acc, sheikh) => acc + sheikh.reviewCount, 0)
+    const averageRating = safeSheikhs.length > 0 
+      ? (safeSheikhs.reduce((acc, sheikh) => acc + sheikh.rating, 0) / safeSheikhs.length).toFixed(1)
       : 0
-    const featuredCities = cities.filter(city => city.featured).length
-    const activeSheikhs = sheikhs.filter(sheikh => sheikh.availability === "متاح").length
-    const verifiedSheikhs = sheikhs.filter(sheikh => sheikh.verified).length
+    const featuredCities = safeCities.filter(city => city.featured).length
+    const activeSheikhs = safeSheikhs.filter(sheikh => sheikh.availability === "متاح").length
+    const verifiedSheikhs = safeSheikhs.filter(sheikh => sheikh.verified).length
 
     setTotalStats({
-      totalCities: cities.length,
-      totalSheikhs: sheikhs.length,
+      totalCities: safeCities.length,
+      totalSheikhs: safeSheikhs.length,
       totalReviews,
       averageRating: parseFloat(averageRating as unknown as string),
       featuredCities,
@@ -205,7 +207,7 @@ export default function AdminAnalytics() {
                 <div className="text-left">
                   <div className="flex items-center gap-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="font-medium">{sheikh.rating}</span>
+                    <span className="font-medium">{sheikh.rating.toFixed(1)}</span>
                   </div>
                   <div className="text-sm text-gray-500">{sheikh.reviewCount} تقييم</div>
                 </div>

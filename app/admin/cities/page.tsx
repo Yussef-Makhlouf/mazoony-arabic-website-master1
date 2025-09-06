@@ -44,7 +44,8 @@ export default function AdminCities() {
         setIsLoading(true)
         const response = await fetch("/api/cities")
         if (response.ok) {
-          const cities = await response.json()
+          const result = await response.json()
+          const cities = Array.isArray(result.data) ? result.data : (Array.isArray(result) ? result : [])
           setCitiesData(cities)
           setFilteredCities(cities)
         } else {
@@ -58,6 +59,8 @@ export default function AdminCities() {
       } catch (error) {
         console.error("خطأ في تحميل المدن:", error)
         setError("حدث خطأ في تحميل المدن")
+        setCitiesData([])  // Set empty array on error
+        setFilteredCities([])
         toast({
           title: "خطأ",
           description: "حدث خطأ في تحميل المدن",
@@ -73,7 +76,9 @@ export default function AdminCities() {
 
   // فلترة البيانات
   useEffect(() => {
-    let filtered = citiesData
+    // Ensure citiesData is always an array before filtering
+    const safeCitiesData = Array.isArray(citiesData) ? citiesData : []
+    let filtered = safeCitiesData
 
     // فلترة حسب البحث
     if (searchTerm) {
@@ -112,7 +117,7 @@ export default function AdminCities() {
   const handleDeleteCity = async () => {
     setIsDeleting(true)
     try {
-      const response = await fetch(`/api/cities/${deleteModal.cityId}`, {
+      const response = await fetch(`/api/cities?id=${deleteModal.cityId}`, {
         method: "DELETE",
       })
 
@@ -223,7 +228,7 @@ export default function AdminCities() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {citiesData.filter((city: City) => city.featured).length}
+              {Array.isArray(citiesData) ? citiesData.filter((city: City) => city.featured).length : 0}
             </div>
             <p className="text-xs text-muted-foreground">مدينة مميزة</p>
           </CardContent>

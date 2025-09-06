@@ -294,7 +294,8 @@ export default function UsersManagement() {
   }
 
   // Filter users
-  const filteredUsers = users.filter(user => {
+  const safeUsers = Array.isArray(users) ? users : []
+  const filteredUsers = safeUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = roleFilter === 'all' || user.role === roleFilter
@@ -305,7 +306,7 @@ export default function UsersManagement() {
     return matchesSearch && matchesRole && matchesStatus
   })
 
-  if (isLoading && users.length === 0) {
+  if (isLoading && safeUsers.length === 0) {
     return (
       <div className="p-6">
         <div className="text-center">جاري التحميل...</div>

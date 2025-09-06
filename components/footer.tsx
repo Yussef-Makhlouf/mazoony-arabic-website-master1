@@ -35,7 +35,9 @@ export function Footer() {
         
         // جلب 6 مدن فقط من قاعدة البيانات
         const citiesData = await cityAPI.getAll()
-        const citiesList = citiesData
+        // Ensure data is always an array to prevent filter errors
+        const safeCitiesData = Array.isArray(citiesData) ? citiesData : []
+        const citiesList = safeCitiesData
           .filter((city: any) => city.featured) // أخذ أول 6 مدن فقط
           .map((city: any) => ({
             name: city.name,

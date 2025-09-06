@@ -55,7 +55,9 @@ export default function AdminMessages() {
     fetchMessages()
   }, [])
 
-  const filteredMessages = messages.filter(message => {
+  // Ensure messages is always an array before filtering
+  const safeMessages = Array.isArray(messages) ? messages : []
+  const filteredMessages = safeMessages.filter(message => {
     const matchesSearch = 
       message.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       message.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,7 +94,7 @@ export default function AdminMessages() {
 
     setIsDeleting(true)
     try {
-      await adminAPI.messages.delete(deleteModal.messageId)
+      await adminAPI.deleteMessage(deleteModal.messageId)
       setMessages(prev => prev.filter(msg => msg._id !== deleteModal.messageId))
       toast.success("تم حذف الرسالة بنجاح")
       setDeleteModal({ isOpen: false, messageId: "", messageSubject: "" })

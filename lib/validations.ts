@@ -113,7 +113,8 @@ export const adminResponseSchema = z.object({
     .max(1000, "الرد يجب أن لا يتجاوز 1000 حرف")
     .regex(/^[\u0600-\u06FF\s\.,!?()]*$/, "الرد يجب أن يكون باللغة العربية")
     .optional()
-    .or(z.literal("")),
+    .or(z.literal(""))
+    .default(""),
   
   status: z.enum([
     "read",

@@ -161,7 +161,7 @@ export function ReviewsDisplay({ sheikhId, showPending = false }: ReviewsDisplay
                       {renderStars(review.rating)}
                     </div>
                     <span className="arabic-text text-sm text-muted-foreground">
-                      {review.rating}/5
+                      {review.rating.toFixed(1)}/5
                     </span>
                   </div>
                 </div>

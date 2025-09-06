@@ -22,17 +22,20 @@ export function SheikhsSearchFilter({ onResultsChange, initialSheikhs }: Sheikhs
   })
   const [isLoading, setIsLoading] = useState(false)
 
+  // Ensure initialSheikhs is always an array
+  const safeSheikhs = Array.isArray(initialSheikhs) ? initialSheikhs : []
+
   // Debounced search function
   const debouncedSearch = useCallback(
     debounce(async (query: string, activeFilters: typeof filters) => {
       if (!query && !Object.values(activeFilters).some(Boolean)) {
-        onResultsChange(initialSheikhs)
+        onResultsChange(safeSheikhs)
         return
       }
 
       setIsLoading(true)
       try {
-        let results = initialSheikhs
+        let results = safeSheikhs
 
         // Apply search filter
         if (query) {
@@ -62,12 +65,12 @@ export function SheikhsSearchFilter({ onResultsChange, initialSheikhs }: Sheikhs
         onResultsChange(results)
       } catch (error) {
         console.error('Error filtering sheikhs:', error)
-        onResultsChange(initialSheikhs)
+        onResultsChange(safeSheikhs)
       } finally {
         setIsLoading(false)
       }
     }, 300),
-    [initialSheikhs, onResultsChange]
+    [safeSheikhs, onResultsChange]
   )
 
   // Handle search input change
@@ -95,7 +98,7 @@ export function SheikhsSearchFilter({ onResultsChange, initialSheikhs }: Sheikhs
       certified: false,
       topRated: false
     })
-    onResultsChange(initialSheikhs)
+    onResultsChange(safeSheikhs)
   }
 
   return (

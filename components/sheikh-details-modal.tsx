@@ -95,7 +95,7 @@ export default function SheikhDetailsModal({ sheikh, isOpen, onClose }: SheikhDe
                     </div>
                     <div className="flex items-center gap-1">
                       <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                      <span>{sheikh.rating}</span>
+                      <span>{sheikh.rating.toFixed(1)}</span>
                       <span className="text-sm">({sheikh.reviews} تقييم)</span>
                     </div>
                   </div>
@@ -227,7 +227,7 @@ export default function SheikhDetailsModal({ sheikh, isOpen, onClose }: SheikhDe
                     <div className="text-sm text-muted-foreground">تقييم</div>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <div className="text-2xl font-bold text-primary">{sheikh.rating}</div>
+                    <div className="text-2xl font-bold text-primary">{sheikh.rating.toFixed(1)}</div>
                     <div className="text-sm text-muted-foreground">متوسط التقييم</div>
                   </div>
                 </div>
