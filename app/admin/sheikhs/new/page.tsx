@@ -55,9 +55,24 @@ export default function NewSheikh() {
         setIsLoadingCities(true)
         const response = await fetch("/api/cities")
         if (response.ok) {
-          const citiesData = await response.json()
+          const result = await response.json()
+          console.log("Cities API Response:", result) // تسجيل الاستجابة للتتبع
+          
+          // التأكد من أن البيانات هي مصفوفة
+          let citiesData = []
+          if (result.data && Array.isArray(result.data)) {
+            citiesData = result.data
+          } else if (Array.isArray(result)) {
+            citiesData = result
+          } else {
+            console.warn("Cities data is not an array:", result)
+            citiesData = []
+          }
+          
           setCities(citiesData)
         } else {
+          console.error("Cities API failed with status:", response.status)
+          setCities([]) // تعيين مصفوفة فارغة في حالة الفشل
           toast({
             title: "خطأ",
             description: "فشل في تحميل المدن",
@@ -66,6 +81,7 @@ export default function NewSheikh() {
         }
       } catch (error) {
         console.error("خطأ في تحميل المدن:", error)
+        setCities([]) // تعيين مصفوفة فارغة في حالة الخطأ
         toast({
           title: "خطأ",
           description: "حدث خطأ في تحميل المدن",
@@ -316,8 +332,8 @@ export default function NewSheikh() {
                   <option value="">
                     {isLoadingCities ? "جاري تحميل المدن..." : "اختر المدينة"}
                   </option>
-                  {cities.map((city) => (
-                    <option key={city._id} value={city.name}>
+                  {Array.isArray(cities) && cities.map((city) => (
+                    <option key={city._id || city.slug || city.name} value={city.name}>
                       {city.name}
                     </option>
                   ))}
@@ -378,7 +394,7 @@ export default function NewSheikh() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.specialties.map((specialty) => (
+                {Array.isArray(formData.specialties) && formData.specialties.map((specialty) => (
                   <Badge key={specialty} variant="secondary" className="gap-1">
                     {specialty}
                     <button
@@ -408,7 +424,7 @@ export default function NewSheikh() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.languages.map((language) => (
+                {Array.isArray(formData.languages) && formData.languages.map((language) => (
                   <Badge key={language} variant="outline" className="gap-1">
                     {language}
                     <button

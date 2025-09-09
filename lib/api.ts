@@ -4,8 +4,8 @@ import { Article, ArticleCategory, ApiResponse } from '@/lib/types'
 function getBaseUrl() {
   // In server-side rendering, we need to use the full URL
   if (typeof window === 'undefined') {
-    // Server-side: use environment variable or default to localhost
-    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' || 'https://mazoony-arabic-website-master1.vercel.app'	
+    // Server-side: use environment variable or default to localhost 
+    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000' || 'https://mazoony-arabic-website-master1.vercel.app' || 'https://www.mymadon.com'	|| 'https://mymadon.com'
   }
   // Client-side: use relative URLs
   return ''

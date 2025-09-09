@@ -88,11 +88,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/sheikhs/[id] - Delete sheikh
+// DELETE /api/sheikhs?id=[id] - Delete sheikh (accepts both ObjectId and slug)
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    
+    console.log('DELETE sheikh request received for id:', id)
     
     if (!id) {
       return NextResponse.json(
@@ -101,12 +103,45 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const deleted = await SheikhService.deleteSheikh(id)
+    // Check if id is a valid ObjectId (24 hex characters)
+    const isObjectId = /^[a-f\d]{24}$/i.test(id)
+    let sheikhToDelete
+    
+    console.log('Is ObjectId format:', isObjectId)
+    
+    if (isObjectId) {
+      // If it's an ObjectId, get the sheikh by ID
+      sheikhToDelete = await SheikhService.getSheikhById(id)
+      console.log('Sheikh found by ID:', !!sheikhToDelete)
+    } else {
+      // If it's not an ObjectId, treat it as a slug
+      sheikhToDelete = await SheikhService.getSheikhBySlug(id)
+      console.log('Sheikh found by slug:', !!sheikhToDelete)
+    }
+    
+    if (!sheikhToDelete) {
+      console.log('Sheikh not found for id:', id)
+      return NextResponse.json(
+        { 
+          error: 'Sheikh not found', 
+          details: `No sheikh found with ${isObjectId ? 'ID' : 'slug'}: ${id}`,
+          debug: `Searched by ${isObjectId ? 'ObjectId' : 'slug'} format`
+        },
+        { status: 404 }
+      )
+    }
+
+    console.log('About to delete sheikh with _id:', sheikhToDelete._id)
+    
+    // Use the actual ObjectId for deletion
+    const deleted = await SheikhService.deleteSheikh(sheikhToDelete._id!)
+    
+    console.log('Delete operation result:', deleted)
     
     if (!deleted) {
       return NextResponse.json(
-        { error: 'Sheikh not found' },
-        { status: 404 }
+        { error: 'Failed to delete sheikh' },
+        { status: 500 }
       )
     }
 
@@ -114,7 +149,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error deleting sheikh:', error)
     return NextResponse.json(
-      { error: 'Failed to delete sheikh' },
+      { error: `Failed to delete sheikh: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }

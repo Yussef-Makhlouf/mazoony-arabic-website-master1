@@ -68,11 +68,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/cities/[id] - Delete city
+// DELETE /api/cities?id=[id] - Delete city (accepts both ObjectId and slug)
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
+    
+    console.log('DELETE city request received for id:', id)
     
     if (!id) {
       return NextResponse.json(
@@ -81,12 +83,45 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    const deleted = await CityService.deleteCity(id)
+    // Check if id is a valid ObjectId (24 hex characters)
+    const isObjectId = /^[a-f\d]{24}$/i.test(id)
+    let cityToDelete
+    
+    console.log('Is ObjectId format:', isObjectId)
+    
+    if (isObjectId) {
+      // If it's an ObjectId, get the city by ID
+      cityToDelete = await CityService.getCityById(id)
+      console.log('City found by ID:', !!cityToDelete)
+    } else {
+      // If it's not an ObjectId, treat it as a slug
+      cityToDelete = await CityService.getCityBySlug(id)
+      console.log('City found by slug:', !!cityToDelete)
+    }
+    
+    if (!cityToDelete) {
+      console.log('City not found for id:', id)
+      return NextResponse.json(
+        { 
+          error: 'City not found', 
+          details: `No city found with ${isObjectId ? 'ID' : 'slug'}: ${id}`,
+          debug: `Searched by ${isObjectId ? 'ObjectId' : 'slug'} format`
+        },
+        { status: 404 }
+      )
+    }
+
+    console.log('About to delete city with _id:', cityToDelete._id)
+    
+    // Use the actual ObjectId for deletion
+    const deleted = await CityService.deleteCity(cityToDelete._id!)
+    
+    console.log('Delete operation result:', deleted)
     
     if (!deleted) {
       return NextResponse.json(
-        { error: 'City not found' },
-        { status: 404 }
+        { error: 'Failed to delete city' },
+        { status: 500 }
       )
     }
 
@@ -94,7 +129,7 @@ export async function DELETE(request: NextRequest) {
   } catch (error) {
     console.error('Error deleting city:', error)
     return NextResponse.json(
-      { error: 'Failed to delete city' },
+      { error: `Failed to delete city: ${error instanceof Error ? error.message : 'Unknown error'}` },
       { status: 500 }
     )
   }

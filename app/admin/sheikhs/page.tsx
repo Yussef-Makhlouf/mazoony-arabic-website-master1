@@ -54,8 +54,32 @@ export default function AdminSheikhs() {
         if (sheikhsResponse.ok && citiesResponse.ok) {
           const sheikhsResult = await sheikhsResponse.json()
           const citiesResult = await citiesResponse.json()
-          const sheikhs = Array.isArray(sheikhsResult.data) ? sheikhsResult.data : (Array.isArray(sheikhsResult) ? sheikhsResult : [])
-          const cities = Array.isArray(citiesResult.data) ? citiesResult.data : (Array.isArray(citiesResult) ? citiesResult : [])
+          
+          console.log("Sheikhs API Response:", sheikhsResult) // تسجيل الاستجابة للتتبع
+          console.log("Cities API Response:", citiesResult) // تسجيل الاستجابة للتتبع
+          
+          // معالجة بيانات المشايخ بشكل آمن
+          let sheikhs = []
+          if (sheikhsResult.data && Array.isArray(sheikhsResult.data)) {
+            sheikhs = sheikhsResult.data
+          } else if (Array.isArray(sheikhsResult)) {
+            sheikhs = sheikhsResult
+          } else {
+            console.warn("Sheikhs data is not an array:", sheikhsResult)
+            sheikhs = []
+          }
+          
+          // معالجة بيانات المدن بشكل آمن
+          let cities = []
+          if (citiesResult.data && Array.isArray(citiesResult.data)) {
+            cities = citiesResult.data
+          } else if (Array.isArray(citiesResult)) {
+            cities = citiesResult
+          } else {
+            console.warn("Cities data is not an array:", citiesResult)
+            cities = []
+          }
+          
           setSheikhsData(sheikhs)
           setFilteredSheikhs(sheikhs)
           setCitiesData(cities)
@@ -325,8 +349,8 @@ export default function AdminSheikhs() {
                 className="w-full p-2 border border-gray-300 rounded-md bg-white"
               >
                 <option value="all">جميع المدن</option>
-                {citiesData.map((city) => (
-                  <option key={city.slug} value={city.slug}>
+                {Array.isArray(citiesData) && citiesData.map((city) => (
+                  <option key={city.slug || city._id || city.name} value={city.slug}>
                     {city.name}
                   </option>
                 ))}
@@ -383,7 +407,7 @@ export default function AdminSheikhs() {
                 </tr>
               </thead>
               <tbody>
-                {filteredSheikhs.map((sheikh) => (
+                {Array.isArray(filteredSheikhs) && filteredSheikhs.map((sheikh) => (
                   <tr key={sheikh._id} className="border-b hover:bg-gray-50">
                     <td className="p-4">
                       <div className="flex items-center gap-3">

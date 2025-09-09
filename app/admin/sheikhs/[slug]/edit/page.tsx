@@ -402,8 +402,8 @@ export default function EditSheikh() {
                   <option value="">
                     {isLoadingCities ? "جاري تحميل المدن..." : "اختر المدينة"}
                   </option>
-                  {cities.map((city) => (
-                    <option key={city._id} value={city.name}>
+                  {Array.isArray(cities) && cities.map((city) => (
+                    <option key={city._id || city.slug || city.name} value={city.name}>
                       {city.name}
                     </option>
                   ))}
@@ -464,7 +464,7 @@ export default function EditSheikh() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.specialties.map((specialty) => (
+                {Array.isArray(formData.specialties) && formData.specialties.map((specialty) => (
                   <Badge key={specialty} variant="secondary" className="gap-1">
                     {specialty}
                     <button
@@ -494,7 +494,7 @@ export default function EditSheikh() {
                 </Button>
               </div>
               <div className="flex flex-wrap gap-2 mt-2">
-                {formData.languages.map((language) => (
+                {Array.isArray(formData.languages) && formData.languages.map((language) => (
                   <Badge key={language} variant="outline" className="gap-1">
                     {language}
                     <button

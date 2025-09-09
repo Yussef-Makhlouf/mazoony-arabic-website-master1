@@ -163,19 +163,33 @@ export class CityService {
       .find({ isActive: true })
       .sort({ name: 1 })
       .toArray();
-    return cities as unknown as City[];
+    // Convert ObjectId to string for _id field
+    return cities.map(city => ({
+      ...city,
+      _id: city._id.toString()
+    })) as unknown as City[];
   }
 
   static async getCityBySlug(slug: string): Promise<City | null> {
     const db = await getDatabase();
     const city = await db.collection('cities').findOne({ slug, isActive: true });
-    return city as City | null;
+    if (!city) return null;
+    // Convert ObjectId to string for _id field
+    return {
+      ...city,
+      _id: city._id.toString()
+    } as City;
   }
 
   static async getCityById(id: string): Promise<City | null> {
     const db = await getDatabase();
     const city = await db.collection('cities').findOne({ _id: new ObjectId(id), isActive: true });
-    return city as City | null;
+    if (!city) return null;
+    // Convert ObjectId to string for _id field
+    return {
+      ...city,
+      _id: city._id.toString()
+    } as City;
   }
 
   static async getFeaturedCities(): Promise<City[]> {
@@ -184,7 +198,11 @@ export class CityService {
       .find({ featured: true, isActive: true })
       .sort({ name: 1 })
       .toArray();
-    return cities as unknown as City[];
+    // Convert ObjectId to string for _id field
+    return cities.map(city => ({
+      ...city,
+      _id: city._id.toString()
+    })) as unknown as City[];
   }
 
   static async createCity(cityData: Omit<City, '_id' | 'createdAt' | 'updatedAt'>): Promise<City> {
@@ -226,13 +244,23 @@ export class CityService {
   static async deleteCity(id: string): Promise<boolean> {
     const db = await getDatabase();
     
-    // Soft delete - just mark as inactive
-    const result = await db.collection('cities').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
-    );
+    try {
+      // Ensure id is a valid ObjectId string
+      const objectId = typeof id === 'string' ? new ObjectId(id) : id;
+      
+      // Soft delete - just mark as inactive
+      const result = await db.collection('cities').updateOne(
+        { _id: objectId },
+        { $set: { isActive: false, updatedAt: new Date() } }
+      );
 
-    return result.modifiedCount > 0;
+      console.log(`Delete city attempt for id ${id}: modifiedCount = ${result.modifiedCount}`);
+      return result.modifiedCount > 0;
+    } catch (error) {
+      console.error('Error in deleteCity:', error);
+      console.error('Invalid id format:', id);
+      throw error;
+    }
   }
 
   static async searchCities(query: string, limit?: number): Promise<City[]> {
@@ -366,19 +394,33 @@ export class SheikhService {
       .find({ isActive: true })
       .sort({ rating: -1, name: 1 })
       .toArray();
-    return sheikhs as unknown as Sheikh[];
+    // Convert ObjectId to string for _id field
+    return sheikhs.map(sheikh => ({
+      ...sheikh,
+      _id: sheikh._id.toString()
+    })) as unknown as Sheikh[];
   }
 
   static async getSheikhBySlug(slug: string): Promise<Sheikh | null> {
     const db = await getDatabase();
     const sheikh = await db.collection('sheikhs').findOne({ slug, isActive: true });
-    return sheikh as unknown as Sheikh | null;
+    if (!sheikh) return null;
+    // Convert ObjectId to string for _id field
+    return {
+      ...sheikh,
+      _id: sheikh._id.toString()
+    } as unknown as Sheikh;
   }
 
   static async getSheikhById(id: string): Promise<Sheikh | null> {
     const db = await getDatabase();
     const sheikh = await db.collection('sheikhs').findOne({ _id: new ObjectId(id), isActive: true });
-    return sheikh as unknown as Sheikh | null;
+    if (!sheikh) return null;
+    // Convert ObjectId to string for _id field
+    return {
+      ...sheikh,
+      _id: sheikh._id.toString()
+    } as unknown as Sheikh;
   }
 
   static async getSheikhsByCity(citySlug: string): Promise<Sheikh[]> {
@@ -387,7 +429,11 @@ export class SheikhService {
       .find({ citySlug, isActive: true })
       .sort({ rating: -1, name: 1 })
       .toArray();
-    return sheikhs as unknown as Sheikh[];
+    // Convert ObjectId to string for _id field
+    return sheikhs.map(sheikh => ({
+      ...sheikh,
+      _id: sheikh._id.toString()
+    })) as unknown as Sheikh[];
   }
 
   static async getSheikhsByCityId(cityId: string): Promise<Sheikh[]> {
@@ -459,13 +505,23 @@ export class SheikhService {
   static async deleteSheikh(id: string): Promise<boolean> {
     const db = await getDatabase();
     
-    // Soft delete - just mark as inactive
-    const result = await db.collection('sheikhs').updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { isActive: false, updatedAt: new Date() } }
-    );
+    try {
+      // Ensure id is a valid ObjectId string
+      const objectId = typeof id === 'string' ? new ObjectId(id) : id;
+      
+      // Soft delete - just mark as inactive
+      const result = await db.collection('sheikhs').updateOne(
+        { _id: objectId },
+        { $set: { isActive: false, updatedAt: new Date() } }
+      );
 
-    return result.modifiedCount > 0;
+      console.log(`Delete sheikh attempt for id ${id}: modifiedCount = ${result.modifiedCount}`);
+      return result.modifiedCount > 0;
+    } catch (error) {
+      console.error('Error in deleteSheikh:', error);
+      console.error('Invalid id format:', id);
+      throw error;
+    }
   }
 
   static async updateSheikhRating(id: string, newRating: number): Promise<boolean> {
