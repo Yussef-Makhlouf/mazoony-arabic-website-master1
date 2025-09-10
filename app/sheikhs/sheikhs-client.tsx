@@ -117,29 +117,43 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {cities.map((city) => (
-              <Link key={city.slug} href={`/city/${city.slug}`}>
-                <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group text-center">
-                
-                  <CardContent className="p-4">
+          {cities.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+              {cities.map((city) => (
+                <Link key={city.slug || city._id} href={`/city/${city.slug}`}>
+                  <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group text-center">
                     
-                    <div className="flex justify-center mb-3">
-                      <div className="p-3 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
-                        <MapPin className="h-6 w-6 text-primary" />
+                    <CardContent className="p-4">
+                      
+                      <div className="flex justify-center mb-3">
+                        <div className="p-3 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
+                          <MapPin className="h-6 w-6 text-primary" />
+                        </div>
                       </div>
-                    </div>
-                    <h3 className="font-semibold arabic-heading text-foreground mb-1 group-hover:text-primary transition-colors">
-                      {city.name}
-                    </h3>
-                    <p className="text-sm arabic-text text-muted-foreground">
-                      {city.count || city.sheikhCount} مأذون
-                    </p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                      <h3 className="font-semibold arabic-heading text-foreground mb-1 group-hover:text-primary transition-colors">
+                        {city.name}
+                      </h3>
+                      <p className="text-sm arabic-text text-muted-foreground">
+                        {city.count || city.sheikhCount || 0} مأذون
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="max-w-md mx-auto">
+                <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold arabic-heading text-foreground mb-2">
+                  لا توجد مدن متاحة حالياً
+                </h3>
+                <p className="text-sm arabic-text text-muted-foreground">
+                  نعمل على إضافة المدن قريباً
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Sheikhs Grid */}

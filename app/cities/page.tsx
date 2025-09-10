@@ -13,24 +13,28 @@ async function getCitiesPageData() {
     // Ensure data is always an array to prevent filter errors
     const allCities = Array.isArray(allCitiesData) ? allCitiesData : []
     
-    const featuredCities = allCities.filter(city => city.featured)
-    const otherCities = allCities.filter(city => !city.featured)
+    // Filter cities that have sheikhs or are marked as featured
+    const activeCities = allCities.filter(city => city.featured || city.count > 0)
+    
+    const featuredCities = activeCities.filter(city => city.featured)
+    const otherCities = activeCities.filter(city => !city.featured)
     
     // Group cities by region
-    const regions = allCities.reduce((acc, city) => {
-      if (!acc[city.region]) {
-        acc[city.region] = []
+    const regions = activeCities.reduce((acc, city) => {
+      const regionName = city.region || 'غير محدد'
+      if (!acc[regionName]) {
+        acc[regionName] = []
       }
-      acc[city.region].push(city)
+      acc[regionName].push(city)
       return acc
     }, {} as Record<string, any[]>)
 
     const regionsArray = Object.entries(regions).map(([name, cities]) => ({
       name,
-      cities
+      cities: (cities as any[]).sort((a: any, b: any) => (b.count || 0) - (a.count || 0)) // Sort by sheikh count
     }))
     
-    return { allCities, featuredCities, otherCities, regions: regionsArray }
+    return { allCities: activeCities, featuredCities, otherCities, regions: regionsArray }
   } catch (error) {
     console.error('Error fetching cities page data:', error)
     // Return empty arrays - no static data

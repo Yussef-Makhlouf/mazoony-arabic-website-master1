@@ -13,7 +13,7 @@ import { articlesAPI, citiesAPI, sheikhsAPI, settingsAPI } from "@/lib/api"
 async function getHomePageData() {
   try {
     const [cities, allSheikhs, featuredArticles] = await Promise.all([
-      citiesAPI.getFeatured(),
+      citiesAPI.getAll(), // Get all cities instead of just featured
       sheikhsAPI.getAll(),
       articlesAPI.getAll({ status: 'published', featured: true, limit: 3 })
     ])
@@ -23,10 +23,19 @@ async function getHomePageData() {
     const safeAllSheikhs = Array.isArray(allSheikhs) ? allSheikhs : []
     const safeFeaturedArticles = Array.isArray(featuredArticles) ? featuredArticles : []
     
-    const featuredSheikhs = safeAllSheikhs.slice(0, 3) // Get first 3 sheikhs as featured
+    // Get featured sheikhs (verified or top-rated)
+    const featuredSheikhs = safeAllSheikhs
+      .filter(sheikh => sheikh.verified || sheikh.rating >= 4.5)
+      .slice(0, 6) // Show up to 6 featured sheikhs
+    
+    // Get featured cities (those marked as featured or with most sheikhs)
+    const featuredCities = safeCities
+      .filter(city => city.featured || city.count > 0)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 8) // Show up to 8 cities
     
     return { 
-      cities: safeCities, 
+      cities: featuredCities, 
       featuredSheikhs, 
       featuredArticles: safeFeaturedArticles 
     }
@@ -100,24 +109,44 @@ export default async function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {featuredSheikhs.map((sheikh: any) => (
-              <SheikhCard
-                key={sheikh._id || sheikh.slug}
-                sheikh={sheikh}
-                variant="featured"
-              />
-            ))}
-          </div>
+          {featuredSheikhs.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                {featuredSheikhs.map((sheikh: any) => (
+                  <SheikhCard
+                    key={sheikh._id || sheikh.slug}
+                    sheikh={sheikh}
+                    variant="featured"
+                  />
+                ))}
+              </div>
 
-          <div className="text-center">
-            <Button variant="outline" size="lg" className="arabic-text px-8 bg-transparent" asChild>
-              <Link href="/sheikhs">
-                عرض جميع المأذونين
-                <ArrowRight className="w-5 h-5 mr-2" />
-              </Link>
-            </Button>
-          </div>
+              <div className="text-center">
+                <Button variant="outline" size="lg" className="arabic-text px-8 bg-transparent" asChild>
+                  <Link href="/sheikhs">
+                    عرض جميع المأذونين
+                    <ArrowRight className="w-5 h-5 mr-2" />
+                  </Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <Users className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+                <h3 className="text-2xl font-bold arabic-heading text-foreground mb-4">لا توجد مأذونين متاحين حالياً</h3>
+                <p className="text-lg arabic-text text-muted-foreground mb-8">
+                  نعمل على إضافة المأذونين قريباً
+                </p>
+                <Button variant="outline" size="lg" className="arabic-text px-8 bg-transparent" asChild>
+                  <Link href="/sheikhs">
+                    عرض جميع المأذونين
+                    <ArrowRight className="w-5 h-5 mr-2" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Cities Section */}
@@ -133,33 +162,45 @@ export default async function HomePage() {
         </section>
 
         <section className="pb-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {cities.map((city: any) => (
-              <Link key={city._id || city.slug} href={`/city/${city.slug}`}>
-                <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group">
-                  <CardHeader className="text-center">
-                    <div className="flex justify-center mb-4">
-                      <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
-                        <MapPin className="h-8 w-8 text-primary" />
+          {cities.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {cities.map((city: any) => (
+                <Link key={city._id || city.slug} href={`/city/${city.slug}`}>
+                  <Card className="hover-lift shadow-islamic border-0 bg-card/50 backdrop-blur-sm cursor-pointer group">
+                    <CardHeader className="text-center">
+                      <div className="flex justify-center mb-4">
+                        <div className="p-4 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110">
+                          <MapPin className="h-8 w-8 text-primary" />
+                        </div>
                       </div>
-                    </div>
-                    <CardTitle className="text-xl arabic-heading text-foreground mb-2">{city.name}</CardTitle>
-                    <CardDescription className="arabic-text text-muted-foreground mb-4">
-                      {city.count} مأذون متاح
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="text-center">
-                    <Button
-                      variant="outline"
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 arabic-text border-primary/20 bg-transparent"
-                    >
-                      عرض المأذونين
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
+                      <CardTitle className="text-xl arabic-heading text-foreground mb-2">{city.name}</CardTitle>
+                      <CardDescription className="arabic-text text-muted-foreground mb-4">
+                        {city.count || 0} مأذون متاح
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-center">
+                      <Button
+                        variant="outline"
+                        className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300 arabic-text border-primary/20 bg-transparent"
+                      >
+                        عرض المأذونين
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16">
+              <div className="max-w-md mx-auto">
+                <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-6" />
+                <h3 className="text-2xl font-bold arabic-heading text-foreground mb-4">لا توجد مدن متاحة حالياً</h3>
+                <p className="text-lg arabic-text text-muted-foreground mb-8">
+                  نعمل على إضافة المدن قريباً
+                </p>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Blog Section */}
