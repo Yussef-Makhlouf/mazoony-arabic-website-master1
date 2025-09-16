@@ -1,13 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { SheikhCard } from "@/components/sheikh-card"
-import { SheikhsSearchFilter } from "@/components/sheikhs-search-filter"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Sheikh } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { MapPin, Users, Award, Star, Search } from "lucide-react"
 import Link from "next/link"
+import { SheikhsSearchFilter } from "@/components/sheikhs-search-filter"
 
 interface SheikhsClientProps {
   initialSheikhs: Sheikh[]
@@ -16,12 +18,28 @@ interface SheikhsClientProps {
 
 export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
   const [filteredSheikhs, setFilteredSheikhs] = useState<Sheikh[]>(initialSheikhs)
-  const [searchActive, setSearchActive] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedCity, setSelectedCity] = useState('all')
 
-  const handleResultsChange = (sheikhs: Sheikh[]) => {
-    setFilteredSheikhs(sheikhs)
-    setSearchActive(sheikhs.length !== initialSheikhs.length)
-  }
+  useEffect(() => {
+    let filtered = [...initialSheikhs]
+
+    if (searchQuery) {
+      filtered = filtered.filter(sheikh => 
+        sheikh.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sheikh.city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sheikh.specialties.some((specialty: string) => 
+          specialty.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+      )
+    }
+
+    if (selectedCity && selectedCity !== 'all') {
+      filtered = filtered.filter(sheikh => sheikh.citySlug === selectedCity)
+    }
+
+    setFilteredSheikhs(filtered)
+  }, [initialSheikhs, searchQuery, selectedCity])
 
   return (
     <>
@@ -66,14 +84,42 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
       <main className="container mx-auto px-4 py-12">
         {/* Search and Filter Section */}
         <section className="mb-12">
-          <SheikhsSearchFilter 
-            onResultsChange={handleResultsChange}
-            initialSheikhs={initialSheikhs}
-          />
+          <Card className="bg-card/50 backdrop-blur-sm border-0 shadow-islamic">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <div className="relative">
+                    <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                    <Input
+                      placeholder="ابحث عن مأذون أو مدينة أو تخصص..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pr-10 arabic-text"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Select value={selectedCity} onValueChange={setSelectedCity}>
+                    <SelectTrigger className="arabic-text">
+                      <SelectValue placeholder="اختر المدينة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">جميع المدن</SelectItem>
+                      {cities.map((city) => (
+                        <SelectItem key={city._id || city.slug} value={city.slug}>
+                          {city.name} ({city.count || 0})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Search Results Summary */}
-        {searchActive && (
+        {(searchQuery || selectedCity !== 'all') && (
           <section className="mb-8">
             <Card className="bg-primary/5 border-primary/20">
               <CardContent className="p-4">
@@ -93,8 +139,8 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      setFilteredSheikhs(initialSheikhs)
-                      setSearchActive(false)
+                      setSearchQuery('')
+                      setSelectedCity('all')
                     }}
                     className="arabic-text"
                   >
@@ -160,10 +206,10 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
         <section>
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold arabic-heading text-foreground mb-4">
-              {searchActive ? 'نتائج البحث' : 'جميع المأذونين المتاحين'}
+              {(searchQuery || selectedCity !== 'all') ? 'نتائج البحث' : 'جميع المأذونين المتاحين'}
             </h2>
             <p className="text-lg arabic-text text-muted-foreground">
-              {searchActive 
+              {(searchQuery || selectedCity !== 'all')
                 ? `تم العثور على ${filteredSheikhs.length} مأذون يطابقون معايير البحث`
                 : 'اختر المأذون المناسب لك واتصل به مباشرة'
               }
@@ -184,8 +230,8 @@ export function SheikhsClient({ initialSheikhs, cities }: SheikhsClientProps) {
               <Button 
                 variant="outline"
                 onClick={() => {
-                  setFilteredSheikhs(initialSheikhs)
-                  setSearchActive(false)
+                  setSearchQuery('')
+                  setSelectedCity('all')
                 }}
                 className="arabic-text"
               >

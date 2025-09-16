@@ -23,10 +23,13 @@ async function getHomePageData() {
     const safeAllSheikhs = Array.isArray(allSheikhs) ? allSheikhs : []
     const safeFeaturedArticles = Array.isArray(featuredArticles) ? featuredArticles : []
     
-    // Get featured sheikhs (verified or top-rated)
+    // Get featured sheikhs (verified or top-rated, or all if none meet criteria)
     const featuredSheikhs = safeAllSheikhs
       .filter(sheikh => sheikh.verified || sheikh.rating >= 4.5)
       .slice(0, 6) // Show up to 6 featured sheikhs
+    
+    // If no featured sheikhs, show all sheikhs (up to 6)
+    const displaySheikhs = featuredSheikhs.length > 0 ? featuredSheikhs : safeAllSheikhs.slice(0, 6)
     
     // Get featured cities (those marked as featured or with most sheikhs)
     const featuredCities = safeCities
@@ -36,7 +39,7 @@ async function getHomePageData() {
     
     return { 
       cities: featuredCities, 
-      featuredSheikhs, 
+      featuredSheikhs: displaySheikhs, 
       featuredArticles: safeFeaturedArticles 
     }
   } catch (error) {

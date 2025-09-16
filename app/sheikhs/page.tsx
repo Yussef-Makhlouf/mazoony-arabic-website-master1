@@ -1,14 +1,14 @@
 import { NavBar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { sheikhAPI, cityAPI } from "@/lib/api"
+import { sheikhsAPI, citiesAPI } from "@/lib/api"
 import { SheikhsClient } from "./sheikhs-client"
 
 // Get data from APIs
 async function getSheikhsPageData() {
   try {
     const [allSheikhs, cities] = await Promise.all([
-      sheikhAPI.getAll(),
-      cityAPI.getAll()
+      sheikhsAPI.getAll(),
+      citiesAPI.getAll()
     ])
     
     // Ensure data is always an array to prevent filter errors

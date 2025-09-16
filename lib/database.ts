@@ -391,7 +391,7 @@ export class SheikhService {
   static async getAllSheikhs(): Promise<Sheikh[]> {
     const db = await getDatabase();
     const sheikhs = await db.collection('sheikhs')
-      .find({ isActive: true })
+      .find({ isActive: { $ne: false } }) // Include sheikhs where isActive is not explicitly false
       .sort({ rating: -1, name: 1 })
       .toArray();
     // Convert ObjectId to string for _id field
@@ -403,7 +403,7 @@ export class SheikhService {
 
   static async getSheikhBySlug(slug: string): Promise<Sheikh | null> {
     const db = await getDatabase();
-    const sheikh = await db.collection('sheikhs').findOne({ slug, isActive: true });
+    const sheikh = await db.collection('sheikhs').findOne({ slug, isActive: { $ne: false } });
     if (!sheikh) return null;
     // Convert ObjectId to string for _id field
     return {
@@ -414,7 +414,7 @@ export class SheikhService {
 
   static async getSheikhById(id: string): Promise<Sheikh | null> {
     const db = await getDatabase();
-    const sheikh = await db.collection('sheikhs').findOne({ _id: new ObjectId(id), isActive: true });
+    const sheikh = await db.collection('sheikhs').findOne({ _id: new ObjectId(id), isActive: { $ne: false } });
     if (!sheikh) return null;
     // Convert ObjectId to string for _id field
     return {
@@ -426,7 +426,7 @@ export class SheikhService {
   static async getSheikhsByCity(citySlug: string): Promise<Sheikh[]> {
     const db = await getDatabase();
     const sheikhs = await db.collection('sheikhs')
-      .find({ citySlug, isActive: true })
+      .find({ citySlug, isActive: { $ne: false } })
       .sort({ rating: -1, name: 1 })
       .toArray();
     // Convert ObjectId to string for _id field
@@ -439,7 +439,7 @@ export class SheikhService {
   static async getSheikhsByCityId(cityId: string): Promise<Sheikh[]> {
     const db = await getDatabase();
     const sheikhs = await db.collection('sheikhs')
-      .find({ cityId, isActive: true })
+      .find({ cityId, isActive: { $ne: false } })
       .sort({ rating: -1, name: 1 })
       .toArray();
     return sheikhs as unknown as Sheikh[];
@@ -449,7 +449,7 @@ export class SheikhService {
     const db = await getDatabase();
     let cursor = db.collection('sheikhs')
       .find({
-        isActive: true,
+        isActive: { $ne: false },
         $or: [
           { name: { $regex: query, $options: 'i' } },
           { city: { $regex: query, $options: 'i' } },

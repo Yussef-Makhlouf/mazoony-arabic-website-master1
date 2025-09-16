@@ -64,3 +64,21 @@ export function numberToArabic(num: number): string {
   const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩']
   return num.toString().replace(/[0-9]/g, (digit) => arabicNumbers[parseInt(digit)])
 }
+
+// دالة debounce لتأخير تنفيذ الدالة
+export function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  wait: number
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout | null = null
+  
+  return (...args: Parameters<T>) => {
+    if (timeout) {
+      clearTimeout(timeout)
+    }
+    
+    timeout = setTimeout(() => {
+      func(...args)
+    }, wait)
+  }
+}

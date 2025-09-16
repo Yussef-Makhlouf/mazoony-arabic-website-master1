@@ -247,7 +247,7 @@ export const sheikhsAPI = {
       throw new Error(error.error || 'فشل في إضافة المأذون')
     }
     const result = await response.json()
-    return result.data
+    return result
   },
 
   update: async (id: string, sheikhData: any): Promise<any> => {
