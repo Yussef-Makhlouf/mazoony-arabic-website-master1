@@ -119,7 +119,7 @@ export default async function HomePage() {
                   <SheikhCard
                     key={sheikh._id || sheikh.slug}
                     sheikh={sheikh}
-                    variant="featured"
+                    variant="default"
                   />
                 ))}
               </div>
